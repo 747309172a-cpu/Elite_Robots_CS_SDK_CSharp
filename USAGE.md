@@ -3,7 +3,7 @@
 ## 1. 项目结构
 
 - `src/wrapper_c`：C/C++ 包装层源码（生成 native 动态库）
-- `src/wrapper_csharp`：C# 包装层项目（`wrapper_csharp.csproj`）
+- `src/wrapper_csharp`：C# 包装层项目（`elite_cs_sdk.csproj`）
 - `example`：示例项目（`example.csproj`）
 
 ---
@@ -26,7 +26,7 @@
 cmake -S . -B build -DELITE_COMPILE_C_WRAPPER=ON
 cmake --build build -j4
 
-dotnet build src/wrapper_csharp/wrapper_csharp.csproj
+dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
 dotnet build example/example.csproj
 ```
 

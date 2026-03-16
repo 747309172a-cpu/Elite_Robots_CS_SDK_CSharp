@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(elite_cs_series_sdk_c LANGUAGES C CXX)
+include(GNUInstallDirs)
+
 set(ELITE_C_WRAPPER_TARGET elite_cs_series_sdk_c)
 
 set(
@@ -22,6 +26,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(${ELITE_C_WRAPPER_TARGET} PRIVATE ELITE_C_EXPORT_LIBRARY)
 endif()
 
+find_package(elite-cs-series-sdk CONFIG REQUIRED)
 target_link_libraries(${ELITE_C_WRAPPER_TARGET} PRIVATE elite-cs-series-sdk::shared)
 
 target_include_directories(
@@ -36,6 +41,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR APPLE)
 endif()
 
 if(ELITE_INSTALL)
-    install(TARGETS ${ELITE_C_WRAPPER_TARGET} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(TARGETS elite_cs_series_sdk_c
+            LIBRARY DESTINATION /usr/local/lib)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()

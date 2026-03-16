@@ -28,21 +28,29 @@ C# call chain:
 Run at repository root:
 
 ```bash
-cmake -S . -B build -DELITE_COMPILE_C_WRAPPER=ON
-cmake --build build -j4
+cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON
+cmake --build build/wrapper -j4
+sudo cmake --install build/wrapper
+sudo ldconfig
 ```
 
 Expected native outputs:
 
-- `build/libelite-cs-series-sdk.so`
 - `build/wrapper/libelite_cs_series_sdk_c.so`
-
+- `/usr/local/lib/libelite_cs_series_sdk_c.so`
 ### 3.2 Build C# projects
-
+编译项目
 ```bash
-dotnet build src/wrapper_csharp/wrapper_csharp.csproj
+dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
+```
+
+编译example
+```bash
 dotnet build example/example.csproj
 ```
+
+
+
 
 ---
 

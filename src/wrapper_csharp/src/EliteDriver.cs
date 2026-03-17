@@ -10,6 +10,7 @@ public sealed class EliteDriver : IDisposable
     private Action<TrajectoryMotionResult>? _managedTrajectoryResultCallback;
     private NativeMethods.EliteDriverRobotExceptionCallback? _nativeRobotExceptionCallback;
     private Action<EliteDriverRobotException>? _managedRobotExceptionCallback;
+    private Action<RobotException>? _managedWrappedRobotExceptionCallback;
 
     public EliteDriver(EliteDriverConfig config)
     {
@@ -255,6 +256,18 @@ public sealed class EliteDriver : IDisposable
         ThrowIfError(status, _handle.DangerousGetHandle());
     }
 
+    public void registerWrappedRobotExceptionCallback(Action<RobotException> cb)
+    {
+        ArgumentNullException.ThrowIfNull(cb);
+        _managedWrappedRobotExceptionCallback = cb;
+        _nativeRobotExceptionCallback ??= OnNativeRobotException;
+        var status = NativeMethods.elite_driver_register_robot_exception_callback(
+            _handle.DangerousGetHandle(),
+            _nativeRobotExceptionCallback,
+            GCHandle.ToIntPtr(_selfHandle));
+        ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
     public EliteSerialCommunication? startToolRs485(SerialConfig config, string ssh_password, int tcp_port = 54321)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -333,6 +346,7 @@ public sealed class EliteDriver : IDisposable
     {
         _managedTrajectoryResultCallback = null;
         _managedRobotExceptionCallback = null;
+        _managedWrappedRobotExceptionCallback = null;
         _handle.Dispose();
         if (_selfHandle.IsAllocated)
         {
@@ -409,7 +423,7 @@ public sealed class EliteDriver : IDisposable
         }
 
         var gch = GCHandle.FromIntPtr(userData);
-        if (gch.Target is not EliteDriver client || client._managedRobotExceptionCallback is null)
+        if (gch.Target is not EliteDriver client)
         {
             return;
         }
@@ -430,7 +444,8 @@ public sealed class EliteDriver : IDisposable
             Column = ex.column,
             Message = Marshal.PtrToStringUTF8(ex.message) ?? string.Empty,
         };
-        client._managedRobotExceptionCallback(managed);
+        client._managedRobotExceptionCallback?.Invoke(managed);
+        client._managedWrappedRobotExceptionCallback?.Invoke(RobotExceptionMapper.fromRaw(managed));
     }
 
     private sealed class Utf8Scope : IDisposable

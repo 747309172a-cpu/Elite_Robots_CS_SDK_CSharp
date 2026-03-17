@@ -92,7 +92,7 @@ internal static class RtsiClientFlowExample
         client.disconnect();
     }
 
-    private static string FormatValue(EliteRtsiRecipe recipe, string name)
+    private static string FormatValue(RtsiRecipe recipe, string name)
     {
         var vec6 = new double[6];
         if (TryGet(() => recipe.getValue(name, vec6)))

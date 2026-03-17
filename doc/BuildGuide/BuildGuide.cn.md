@@ -5,6 +5,7 @@
 仓库目录包含：
 
 - `src/wrapper_csharp`：C# 封装库（基于 `P/Invoke` 与 `SafeHandle`）
+- `src/wrapper_c`：C封装库（封装Elite_Robots_CS_SDK相关接口）
 - `example`：可直接运行的 C# 示例程序
 
 C# 调用链：
@@ -17,24 +18,25 @@ C# 调用链：
 
 - .NET SDK 8.0+
 - CMake + C++ 编译器
-- 已编译 C++ SDK并在系统目录中安装libelite-cs-series-sdk.so库
-
+  
 ---
 
 ## 3. 构建步骤
+在仓库根目录执行
+
 
 ### 3.1 编译本地wrapper_c库
 
-在仓库根目录执行：
-
 ```bash
-cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON
+cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON  
 cmake --build build/wrapper -j4
-sudo cmake --install build/wrapper
+sudo cmake --install build/wrapper  
 sudo ldconfig
 ```
+`ELITE_INSTALL打开代表可将库安装到系统目录，ELITE_AUTO_FETCH_SDK打开表示自动检测系统是否存在对应SDK库，如无则自动拉取下载`
 
-期望生成C ABI：
+
+期望生成：
 
 - `build/wrapper/libelite_cs_series_sdk_c.so`
 - `/usr/local/lib/libelite_cs_series_sdk_c.so`
@@ -44,7 +46,6 @@ sudo ldconfig
 编译c#端wrapper接口
 ```bash
 dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
-
 ```
 
 编译example
@@ -114,16 +115,18 @@ dotnet run --project example -- connect_robot_test 172.16.102.156 --server-port 
 ---
 
 ## 6. 外部c#项目使用示例
-*此步需要执行前面生成NuGet包步骤*
+**此步需要执行前面生成NuGet包步骤**
+
+
 进入项目目录
 ```bash
-cd /myproject/
+cd myproject/
 ```
 从本地添加对应功能包
 ```bash
 dotnet add package elite_cs_sdk --version 1.0.0 --source /xxxxx/nupkg
 ```
-source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的nupkg文件目录
+source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的本地nupkg文件目录
 
 代码示例：
 ```csharp
@@ -140,18 +143,17 @@ if (!dash.connect(ip))
 Console.WriteLine($"RobotMode: {dash.robotMode()}");
 dash.disconnect();
 ```
-4.编译项目
+编译项目
 ```bash
 dotnet build
-
 ```
-5.运行示例
+运行示例
 ```bash
-dotnet run        //在工程目录中执行
+dotnet run        
 ```
 ---
 
-## 7. 各示例功能与流程
+## 7. example各示例功能与流程
 
 ### 7.1 `primary_client`
 
@@ -177,9 +179,9 @@ dotnet run        //在工程目录中执行
 
 - 功能：轨迹运动示例，包含基于回调的完成判定。
 - 流程：
-  - 通过 RTSI IO 读取当前关节/TCP
+  - 通过 RTSI 读取当前关节/TCP
   - 启动控制
-  - 先执行关节 `moveTo`
+  - 先执行关节 `move`
   - 再用 `writeTrajectoryPoint` 下发笛卡尔轨迹点
   - 循环发送 NOOP 保活并等待回调结果
 
@@ -229,7 +231,7 @@ dotnet run        //在工程目录中执行
 
 ### 9.3 `RtUtils` FIFO 调度警告
 
-- 这是实时调度优化提示，通常不是致命错误。
+- 这是实时调度优化提示，通常不是致命错误，可忽略。
 
 ---
 

@@ -2,12 +2,12 @@ using System.Runtime.InteropServices;
 
 namespace EliteRobots.CSharp;
 
-public sealed class EliteRtsiRecipe : IDisposable
+public sealed class RtsiRecipe : IDisposable
 {
     private readonly EliteRtsiRecipeSafeHandle _handle;
     private readonly nint _clientHandle;
 
-    internal EliteRtsiRecipe(nint clientHandle, nint rawHandle)
+    internal RtsiRecipe(nint clientHandle, nint rawHandle)
     {
         _clientHandle = clientHandle;
         _handle = new EliteRtsiRecipeSafeHandle(rawHandle);
@@ -208,23 +208,23 @@ public sealed class RtsiClientInterface : IDisposable
         };
     }
 
-    public EliteRtsiRecipe setupOutputRecipe(IEnumerable<string> recipe_list, double frequency = 250)
+    public RtsiRecipe setupOutputRecipe(IEnumerable<string> recipe_list, double frequency = 250)
     {
         ArgumentNullException.ThrowIfNull(recipe_list);
         var csv = string.Join(",", recipe_list);
         var status =
             NativeMethods.elite_rtsi_client_setup_output_recipe(_handle.DangerousGetHandle(), csv, frequency, out var recipe);
         ThrowIfError(status, _handle.DangerousGetHandle());
-        return new EliteRtsiRecipe(_handle.DangerousGetHandle(), recipe);
+        return new RtsiRecipe(_handle.DangerousGetHandle(), recipe);
     }
 
-    public EliteRtsiRecipe setupInputRecipe(IEnumerable<string> recipe)
+    public RtsiRecipe setupInputRecipe(IEnumerable<string> recipe)
     {
         ArgumentNullException.ThrowIfNull(recipe);
         var csv = string.Join(",", recipe);
         var status = NativeMethods.elite_rtsi_client_setup_input_recipe(_handle.DangerousGetHandle(), csv, out var outRecipe);
         ThrowIfError(status, _handle.DangerousGetHandle());
-        return new EliteRtsiRecipe(_handle.DangerousGetHandle(), outRecipe);
+        return new RtsiRecipe(_handle.DangerousGetHandle(), outRecipe);
     }
 
     public bool start()
@@ -241,14 +241,14 @@ public sealed class RtsiClientInterface : IDisposable
         return ok != 0;
     }
 
-    public void send(EliteRtsiRecipe recipe)
+    public void send(RtsiRecipe recipe)
     {
         ArgumentNullException.ThrowIfNull(recipe);
         var status = NativeMethods.elite_rtsi_client_send(_handle.DangerousGetHandle(), recipe.DangerousGetHandle());
         ThrowIfError(status, _handle.DangerousGetHandle());
     }
 
-    public bool receiveData(EliteRtsiRecipe recipe, bool read_newest = false)
+    public bool receiveData(RtsiRecipe recipe, bool read_newest = false)
     {
         ArgumentNullException.ThrowIfNull(recipe);
         var status = NativeMethods.elite_rtsi_client_receive_data(
@@ -260,7 +260,7 @@ public sealed class RtsiClientInterface : IDisposable
         return ok != 0;
     }
 
-    public int receiveData(IReadOnlyList<EliteRtsiRecipe> recipes, bool read_newest = false)
+    public int receiveData(IReadOnlyList<RtsiRecipe> recipes, bool read_newest = false)
     {
         ArgumentNullException.ThrowIfNull(recipes);
         if (recipes.Count == 0)

@@ -8,6 +8,7 @@ public sealed class PrimaryClientInterface : IDisposable
     private readonly ElitePrimarySafeHandle _handle;
     private NativeMethods.ElitePrimaryRobotExceptionCallback? _nativeRobotExceptionCallback;
     private Action<PrimaryRobotException>? _managedRobotExceptionCallback;
+    private Action<RobotException>? _managedWrappedRobotExceptionCallback;
     private GCHandle _selfHandle;
     private bool _disposed;
 
@@ -99,9 +100,22 @@ public sealed class PrimaryClientInterface : IDisposable
         ThrowIfError(status, _handle.DangerousGetHandle());
     }
 
+    public void registerWrappedRobotExceptionCallback(Action<RobotException> callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback);
+        _managedWrappedRobotExceptionCallback = callback;
+        _nativeRobotExceptionCallback ??= OnNativeRobotException;
+        var status = NativeMethods.elite_primary_register_robot_exception_callback(
+            _handle.DangerousGetHandle(),
+            _nativeRobotExceptionCallback,
+            GCHandle.ToIntPtr(_selfHandle));
+        ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
     public void clearRobotExceptionCallback()
     {
         _managedRobotExceptionCallback = null;
+        _managedWrappedRobotExceptionCallback = null;
     }
 
 
@@ -114,6 +128,7 @@ public sealed class PrimaryClientInterface : IDisposable
         _disposed = true;
 
         _managedRobotExceptionCallback = null;
+        _managedWrappedRobotExceptionCallback = null;
         _handle.Dispose();
         if (_selfHandle.IsAllocated)
         {
@@ -129,7 +144,7 @@ public sealed class PrimaryClientInterface : IDisposable
         }
 
         var gch = GCHandle.FromIntPtr(userData);
-        if (gch.Target is not PrimaryClientInterface client || client._managedRobotExceptionCallback is null)
+        if (gch.Target is not PrimaryClientInterface client)
         {
             return;
         }
@@ -152,7 +167,8 @@ public sealed class PrimaryClientInterface : IDisposable
             Message = message,
         };
 
-        client._managedRobotExceptionCallback(managed);
+        client._managedRobotExceptionCallback?.Invoke(managed);
+        client._managedWrappedRobotExceptionCallback?.Invoke(RobotExceptionMapper.fromRaw(managed));
     }
 
     private static void ThrowIfError(NativeMethods.EliteStatus status, nint handle)

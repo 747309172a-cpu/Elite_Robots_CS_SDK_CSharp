@@ -9,6 +9,9 @@ public sealed class PrimaryClientInterface : IDisposable
     private NativeMethods.ElitePrimaryRobotExceptionCallback? _nativeRobotExceptionCallback;
     private Action<PrimaryRobotException>? _managedRobotExceptionCallback;
     private Action<RobotException>? _managedWrappedRobotExceptionCallback;
+    private Action<RobotError>? _managedRobotErrorCallback;
+    private Action<RobotRuntimeException>? _managedRobotRuntimeExceptionCallback;
+    private Action<RobotDisconnectedException>? _managedRobotDisconnectedCallback;
     private GCHandle _selfHandle;
     private bool _disposed;
 
@@ -65,7 +68,7 @@ public sealed class PrimaryClientInterface : IDisposable
     }
 
 
-    public bool getPackage(out PrimaryKinematicsInfo info, int timeoutMs = 1000)
+    public bool getPackage(out KinematicsInfo info, int timeoutMs = 1000)
     {
         var dhA = new double[6];
         var dhD = new double[6];
@@ -79,7 +82,7 @@ public sealed class PrimaryClientInterface : IDisposable
             out var success);
         ThrowIfError(status, _handle.DangerousGetHandle());
 
-        info = new PrimaryKinematicsInfo
+        info = new KinematicsInfo
         {
             DhA = dhA,
             DhD = dhD,
@@ -112,10 +115,33 @@ public sealed class PrimaryClientInterface : IDisposable
         ThrowIfError(status, _handle.DangerousGetHandle());
     }
 
+    public void registerRobotExceptionCallback(
+        Action<RobotError> onRobotError,
+        Action<RobotRuntimeException> onRuntimeException,
+        Action<RobotDisconnectedException>? onDisconnected = null)
+    {
+        ArgumentNullException.ThrowIfNull(onRobotError);
+        ArgumentNullException.ThrowIfNull(onRuntimeException);
+
+        _managedRobotErrorCallback = onRobotError;
+        _managedRobotRuntimeExceptionCallback = onRuntimeException;
+        _managedRobotDisconnectedCallback = onDisconnected;
+
+        _nativeRobotExceptionCallback ??= OnNativeRobotException;
+        var status = NativeMethods.elite_primary_register_robot_exception_callback(
+            _handle.DangerousGetHandle(),
+            _nativeRobotExceptionCallback,
+            GCHandle.ToIntPtr(_selfHandle));
+        ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
     public void clearRobotExceptionCallback()
     {
         _managedRobotExceptionCallback = null;
         _managedWrappedRobotExceptionCallback = null;
+        _managedRobotErrorCallback = null;
+        _managedRobotRuntimeExceptionCallback = null;
+        _managedRobotDisconnectedCallback = null;
     }
 
 
@@ -129,6 +155,9 @@ public sealed class PrimaryClientInterface : IDisposable
 
         _managedRobotExceptionCallback = null;
         _managedWrappedRobotExceptionCallback = null;
+        _managedRobotErrorCallback = null;
+        _managedRobotRuntimeExceptionCallback = null;
+        _managedRobotDisconnectedCallback = null;
         _handle.Dispose();
         if (_selfHandle.IsAllocated)
         {
@@ -168,7 +197,20 @@ public sealed class PrimaryClientInterface : IDisposable
         };
 
         client._managedRobotExceptionCallback?.Invoke(managed);
-        client._managedWrappedRobotExceptionCallback?.Invoke(RobotExceptionMapper.fromRaw(managed));
+        var wrapped = RobotExceptionMapper.fromRaw(managed);
+        client._managedWrappedRobotExceptionCallback?.Invoke(wrapped);
+        switch (wrapped)
+        {
+            case RobotError robotError:
+                client._managedRobotErrorCallback?.Invoke(robotError);
+                break;
+            case RobotRuntimeException runtimeException:
+                client._managedRobotRuntimeExceptionCallback?.Invoke(runtimeException);
+                break;
+            case RobotDisconnectedException disconnectedException:
+                client._managedRobotDisconnectedCallback?.Invoke(disconnectedException);
+                break;
+        }
     }
 
     private static void ThrowIfError(NativeMethods.EliteStatus status, nint handle)

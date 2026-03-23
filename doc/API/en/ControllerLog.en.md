@@ -2,7 +2,7 @@
 
 ## Introduction
 
-`EliteControllerLog` provides system log download capability from the robot controller.
+`EliteControllerLog` provides the ability to download robot controller logs.
 
 ## Import
 
@@ -19,18 +19,20 @@ public static bool downloadSystemLog(string robot_ip, string password, string pa
 ```
 
 - ***Function***
-  - Download system logs from the robot to local path.
+  - Download system logs from the robot to a local path.
 - ***Parameters***
-  - `robot_ip`: Robot IP address.
-  - `password`: Robot SSH password.
-  - `path`: Local output path.
-  - `progress_cb`: Optional progress callback.
+  - `robot_ip`: robot IP address.
+  - `password`: robot SSH password.
+  - `path`: local save path.
+  - `progress_cb`: download progress callback (optional).
 - ***Callback Parameters***
-  - `fileSize`: Total file size in bytes.
-  - `recvSize`: Received size in bytes.
-  - `err`: Error string.
-- ***Return***
-  - `true` on success, `false` on failure.
+  - `fileSize`: total file size in bytes.
+  - `recvSize`: currently received size in bytes.
+  - `err`: error message string.
+- ***Return Value***
+  - Returns `true` if the download succeeds, otherwise `false`.
+
 - ***Notes***
-  1. On Linux, if `libssh` is not installed, ensure `scp`, `ssh`, and `sshpass` are available.
+
+  1. On Linux, if `libssh` is not installed, the computer running the SDK must have the `scp`, `ssh`, and `sshpass` commands available.
   2. On Windows, if `libssh` is not installed, this interface is unavailable.

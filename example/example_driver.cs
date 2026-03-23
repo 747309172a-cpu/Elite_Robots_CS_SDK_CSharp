@@ -84,7 +84,7 @@ internal static class DriverExample
 
         RunStep("getPrimaryPackage", () =>
         {
-            var pkg = new PrimaryKinematicsInfo();
+            var pkg = new KinematicsInfo();
             var ok = driver.getPrimaryPackage(pkg, 1000);
             if (ok)
             {

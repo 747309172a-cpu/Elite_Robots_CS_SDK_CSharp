@@ -285,7 +285,7 @@ public bool sendScript(string script)
 ### getPrimaryPackage
 
 ```csharp
-public bool getPrimaryPackage(PrimaryKinematicsInfo pkg, int timeout_ms)
+public bool getPrimaryPackage(KinematicsInfo pkg, int timeout_ms)
 ```
 
 - ***功能***

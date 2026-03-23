@@ -238,11 +238,11 @@ public int getID()
 ```
 
 - ***功能***
-  - 获取 recipe ID。
+  - 获取配方ID。
 - ***参数***
   - 无。
 - ***返回值***
-  - 返回 recipe ID。
+  - 返回配方ID。
 
 ### getRecipe
 
@@ -251,11 +251,11 @@ public string[] getRecipe()
 ```
 
 - ***功能***
-  - 获取 recipe 字段列表。
+  - 获取配方订阅项名称的列表。
 - ***参数***
   - 无。
 - ***返回值***
-  - 返回字段名数组。
+  - 配方订阅项名称的列表。
 
 ### getValue（多重载）
 
@@ -268,10 +268,10 @@ public bool getValue(string name, double[] out_value6)
 ```
 
 - ***功能***
-  - 获取配方订阅项名称的列表。
+  - 获取配方中订阅项的值。
 - ***参数***
-  - `name`：字段名。
-  - `out_value/out_value6`：输出值容器，向量接口要求长度为 6。
+  - `name`：订阅项名称。
+  - `out_value/out_value6`：订阅项输出值，注意此值的类型需要和RTSI文档中的类型一致。
 - ***返回值***
   - 读取成功返回 `true`，失败返回 `false`。
 
@@ -286,10 +286,10 @@ public bool setValue(string name, double[] value6)
 ```
 
 - ***功能***
-  - 按字段名设置 recipe 值。
+  - 设置配方中订阅项的值。
 - ***参数***
-  - `name`：字段名。
-  - `value/value6`：输入值，向量接口要求长度为 6。
+  - `name`：订阅项名称。
+  - `value/value6`：订阅项设置值，注意此值的类型需要和RTSI文档中的类型一致。
 - ***返回值***
   - 设置成功返回 `true`，失败返回 `false`。
 

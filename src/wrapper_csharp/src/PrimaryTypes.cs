@@ -1,6 +1,6 @@
 namespace EliteRobots.CSharp;
 
-public sealed class PrimaryKinematicsInfo
+public class KinematicsInfo
 {
     public double[] DhA { get; init; } = new double[6];
     public double[] DhD { get; init; } = new double[6];

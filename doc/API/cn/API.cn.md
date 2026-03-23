@@ -13,6 +13,14 @@
 - ***文档***
   - [EliteDriver.cn.md](./EliteDriver.cn.md)
 
+### EliteDriverConfig
+
+- ***功能***
+  - Driver 构造配置参数说明。
+- ***文档***
+  - [EliteDriverConfig.cn.md](./EliteDriverConfig.cn.md)
+
+
 ### PrimaryPort
 
 - ***功能***
@@ -23,7 +31,7 @@
 ### RTSI
 
 - ***功能***
-  - 实时数据交互与 IO 读写。
+  - 实时数据交互读写。
 - ***文档***
   - [RTSI.cn.md](./RTSI.cn.md)
 
@@ -51,34 +59,17 @@
 ### RemoteUpgrade
 
 - ***功能***
-  - 远程升级控制软件。
+  - 远程升级。
 - ***文档***
   - [RemoteUpgrade.cn.md](./RemoteUpgrade.cn.md)
 
 ### ControllerLog
 
 - ***功能***
-  - 下载控制器系统日志。
+  - 控制器系统日志。
 - ***文档***
   - [ControllerLog.cn.md](./ControllerLog.cn.md)
 
-### SerialCommunication
 
-- ***功能***
-  - RS485 串口配置与通信。
-- ***文档***
-  - [SerialCommunication.cn.md](./SerialCommunication.cn.md)
 
-### RobotException
 
-- ***功能***
-  - 异常结构与 SDK 异常类型说明。
-- ***文档***
-  - [RobotException.cn.md](./RobotException.cn.md)
-
-### EliteDriverConfig
-
-- ***功能***
-  - Driver 构造配置参数说明。
-- ***文档***
-  - [EliteDriverConfig.cn.md](./EliteDriverConfig.cn.md)

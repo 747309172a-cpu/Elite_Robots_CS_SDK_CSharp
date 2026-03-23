@@ -12,4 +12,4 @@
 
 
 ## API手册
-[API手册](./doc/cn/API.cn.md)
+[API手册](./doc/API/cn/API.cn.md)

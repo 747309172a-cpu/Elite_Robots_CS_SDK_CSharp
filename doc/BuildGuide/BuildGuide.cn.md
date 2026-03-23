@@ -18,32 +18,63 @@ C# 调用链：
 
 - .NET SDK 8.0+
 - CMake + C++ 编译器
+- Linux：建议使用 `gcc/g++` 或 `clang/clang++`
+- Windows：
+使用vcpkg安装
+```bash
+  .\vcpkg install boost-asio
+
+  .\vcpkg install libssh
+
+  .\vcpkg integrate install
+```
   
 ---
 
 ## 3. 构建步骤
-在仓库根目录执行
 
+### 3.1 编译本地 `wrapper_c` 库
 
-### 3.1 编译本地wrapper_c库
+#### Linux
 
 ```bash
-cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON  
+cd <clone of this repository>
+cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
 cmake --build build/wrapper -j4
-sudo cmake --install build/wrapper  
+sudo cmake --install build/wrapper
 sudo ldconfig
 ```
-`ELITE_INSTALL打开代表可将库安装到系统目录，ELITE_AUTO_FETCH_SDK打开表示自动检测系统是否存在对应SDK库，如无则自动拉取下载`
 
+`ELITE_INSTALL=ON` 表示安装到系统目录。  
+`ELITE_AUTO_FETCH_SDK=ON` 表示当本机未找到 Elite C++ SDK 时，自动拉取并编译。
 
-期望生成：
+Linux 期望生成：
 
 - `build/wrapper/libelite_cs_series_sdk_c.so`
 - `/usr/local/lib/libelite_cs_series_sdk_c.so`
 
+#### Windows
+
+```bash
+cd <clone of this repository>
+cmake -S src/wrapper_c -B build/wrapper -A x64 -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
+cmake --build build/wrapper --config Release
+cmake --install build/wrapper --config Release
+```
+
+Windows 期望生成：
+
+- `build/wrapper/Release/elite_cs_series_sdk_c.dll`
+- `build/wrapper/Release/elite_cs_series_sdk_c.lib`
+- 安装目录中的 `elite_cs_series_sdk_c.dll`
+
+说明：
+- 如果未使用 `cmake --install`，则运行 C# 程序时需要确保 `elite_cs_series_sdk_c.dll` 及其依赖 DLL 在可执行程序目录，或已加入 `PATH`
+
 ### 3.2 编译 C# 项目
 
 编译c#端wrapper接口
+Windows 和 Linux 中下述编译命令相同。
 ```bash
 dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
 ```
@@ -57,6 +88,7 @@ dotnet build example/example.csproj
 ```bash
 dotnet pack src/wrapper_csharp/elite_cs_sdk.csproj -c Release -o ./nupkg
 ```
+
 ---
 
 ## 4. 如何运行示例
@@ -90,22 +122,22 @@ dotnet run --project example -- primary_client 172.16.102.156(机器人ip)
 # Dashboard
 dotnet run --project example -- dashboard_client 172.16.102.156
 
-# Driver（通用接口测试）
+# Driver
 dotnet run --project example -- driver 172.16.102.156 /path/to/external_control.script --headless
 
-# SpeedL 示例
+# SpeedL 
 dotnet run --project example -- speedl 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
-# Trajectory 示例
+# Trajectory 
 dotnet run --project example -- trajectory 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
-# Servoj 轨迹规划示例
+# Servoj 
 dotnet run --project example -- servoj_plan 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
-# RTSI Client 示例
+# RTSI Client 
 dotnet run --project example -- rtsi_client 172.16.102.156 --port 30004
 
-# 串口 RS485 示例
+# serial
 dotnet run --project example -- serial 172.16.102.156 --ssh-password 123456 --headless true --script-file /path/to/external_control.script
 
 # 机器人反连 PC 套接字测试
@@ -124,7 +156,7 @@ cd myproject/
 ```
 从本地添加对应功能包
 ```bash
-dotnet add package elite_cs_sdk --version 1.0.0 --source /xxxxx/nupkg
+dotnet add package elite_cs_sdk --version 0.1.0 --source /xxxxx/nupkg
 ```
 source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的本地nupkg文件目录
 
@@ -220,9 +252,13 @@ dotnet run
 
 ### 9.1 `DllNotFoundException: elite_cs_series_sdk_c`
 
-- 确保已生成本地库：
-  - `build/wrapper/libelite_cs_series_sdk_c.so`
-- 本地库更新后重新 `dotnet build`。
+- Linux：
+  - 确保已生成 `build/wrapper/libelite_cs_series_sdk_c.so`
+  - 如安装到系统目录，执行过 `sudo cmake --install build/wrapper` 和 `sudo ldconfig`
+- Windows：
+  - 确保已生成 `build/wrapper/Release/elite_cs_series_sdk_c.dll`
+  - 确保 `elite_cs_series_sdk_c.dll` 以及其依赖 DLL 位于程序输出目录，或已加入 `PATH`
+- 本地库更新后重新 `dotnet build`
 
 ### 9.2 串口示例报 `SSH connection failed: Connection refused`
 

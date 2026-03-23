@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The RemoteUpgrade module provides remote controller software upgrade functionality.
+The RemoteUpgrade module provides remote upgrade functionality for robot control software.
 
 ## Import
 
@@ -19,13 +19,14 @@ public static bool upgradeControlSoftware(string ip, string file, string passwor
 ```
 
 - ***Function***
-  - Trigger controller software remote upgrade.
+  - Trigger a remote upgrade of the control software.
 - ***Parameters***
-  - `ip`: Robot IP.
-  - `file`: Upgrade package path.
-  - `password`: Robot SSH password.
-- ***Return***
-  - `true` on success, `false` on failure.
+  - `ip`: robot IP address.
+  - `file`: upgrade package file path.
+  - `password`: robot SSH password.
+- ***Return Value***
+  - Returns `true` if the request is executed successfully, otherwise `false`.
 - ***Notes***
-  1. On Linux, if `libssh` is not installed, ensure `scp`, `ssh`, and `sshpass` are available.
+
+  1. On Linux, if `libssh` is not installed, the computer running the SDK must have the `scp`, `ssh`, and `sshpass` commands available.
   2. On Windows, if `libssh` is not installed, this interface is unavailable.

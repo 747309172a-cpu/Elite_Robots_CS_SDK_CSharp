@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Log module provides log level definition, log callback registration, and active logging output.
+The Log module provides log-related features in `Elite_Robots_CS_SDK`, including log level definitions, log handler interfaces, and log output functions.
 
 ## Import
 
@@ -10,28 +10,139 @@ The Log module provides log level definition, log callback registration, and act
 using EliteRobots.CSharp;
 ```
 
-## LogLevel
+## Log Levels
+
+### LogLevel
 
 ```csharp
 public enum LogLevel
 ```
 
-- `ELI_DEBUG`, `ELI_INFO`, `ELI_WARN`, `ELI_ERROR`, `ELI_FATAL`, `ELI_NONE`
+- ***Function***
+  - Defines log levels.
+- ***Enum Values***
+  - `ELI_DEBUG`, `ELI_INFO`, `ELI_WARN`, `ELI_ERROR`, `ELI_FATAL`, `ELI_NONE`.
 
 ## Interfaces
 
+### registerLogHandler
+
 ```csharp
 public static void registerLogHandler(Action<string, int, LogLevel, string> handler)
-public static void unregisterLogHandler()
-public static void setLogLevel(LogLevel level)
+```
 
+- ***Function***
+  - Register a custom log handler.
+- ***Parameters***
+  - `handler`: callback parameters are `file`, `line`, `level`, and `message`.
+- ***Return Value***
+  - None.
+
+### unregisterLogHandler
+
+```csharp
+public static void unregisterLogHandler()
+```
+
+- ***Function***
+  - Unregister the current log handler and enable the default log handler.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - None.
+
+### setLogLevel
+
+```csharp
+public static void setLogLevel(LogLevel level)
+```
+
+- ***Function***
+  - Set the global log level.
+- ***Parameters***
+  - `level`: log level.
+- ***Return Value***
+  - None.
+
+### logDebugMessage
+
+```csharp
 public static void logDebugMessage(string file, int line, string msg)
+```
+
+- ***Function***
+  - Output a Debug-level log message.
+- ***Parameters***
+  - `file`: file name.
+  - `line`: line number.
+  - `msg`: log message.
+- ***Return Value***
+  - None.
+
+### logInfoMessage
+
+```csharp
 public static void logInfoMessage(string file, int line, string msg)
+```
+
+- ***Function***
+  - Output an Info-level log message.
+- ***Parameters***
+  - Same as above.
+- ***Return Value***
+  - None.
+
+### logWarnMessage
+
+```csharp
 public static void logWarnMessage(string file, int line, string msg)
+```
+
+- ***Function***
+  - Output a Warn-level log message.
+- ***Parameters***
+  - Same as above.
+- ***Return Value***
+  - None.
+
+### logErrorMessage
+
+```csharp
 public static void logErrorMessage(string file, int line, string msg)
+```
+
+- ***Function***
+  - Output an Error-level log message.
+- ***Parameters***
+  - Same as above.
+- ***Return Value***
+  - None.
+
+### logFatalMessage
+
+```csharp
 public static void logFatalMessage(string file, int line, string msg)
+```
+
+- ***Function***
+  - Output a Fatal-level log message.
+- ***Parameters***
+  - Same as above.
+- ***Return Value***
+  - None.
+
+### logNoneMessage
+
+```csharp
 public static void logNoneMessage(string file, int line, string msg)
 ```
+
+- ***Function***
+  - Output a None-level log message.
+- ***Parameters***
+  - Same as above.
+- ***Return Value***
+  - None.
 
 ## Usage Example
 

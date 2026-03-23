@@ -1,3 +1,5 @@
+// Usage information
+//这是所有例子的入口，运行时需要指定第一个参数为要运行的例子名称，后续参数会传递给对应的例子进行解析
 if (args.Length < 2)
 {
     Console.WriteLine("Usage:");

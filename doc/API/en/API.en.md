@@ -1,84 +1,70 @@
-# ELITE_ROBOT_CS_SDK C# API Index
+# ELITE_ROBOT_CS_SDK C# API Documentation Index
 
 ## Introduction
 
-This folder indexes the C# API documents for `Elite_Robots_CS_SDK_CSharp`.
+This document is an index of the C# API documentation for `Elite_Robots_CS_SDK_CSharp`.
 
-## Modules
+## Module List
 
 ### EliteDriver
 
 - ***Function***
-  - Main robot control interface (motion, trajectory, force mode, script, RS485).
+  - Main robot control interface (motion, trajectory, force control, scripts, RS485).
 - ***Document***
-  - [EliteDriver.md](./EliteDriver.en.md)
+  - [EliteDriver.en.md](./EliteDriver.en.md)
+
+### EliteDriverConfig
+
+- ***Function***
+  - Description of the configuration parameters used to construct the driver.
+- ***Document***
+  - [EliteDriverConfig.en.md](./EliteDriverConfig.en.md)
 
 ### PrimaryPort
 
 - ***Function***
   - Primary channel communication and exception callbacks.
 - ***Document***
-  - [PrimaryPort.md](./PrimaryPort.en.md)
+  - [PrimaryPort.en.md](./PrimaryPort.en.md)
 
 ### RTSI
 
 - ***Function***
-  - Realtime data exchange and IO read/write.
+  - Real-time data interaction for reading and writing.
 - ***Document***
-  - [RTSI.md](./RTSI.en.md)
+  - [RTSI.en.md](./RTSI.en.md)
 
 ### Dashboard
 
 - ***Function***
-  - Dashboard command control and status queries.
+  - Dashboard command control and status query.
 - ***Document***
-  - [Dashboard.md](./Dashboard.en.md)
+  - [Dashboard.en.md](./Dashboard.en.md)
 
 ### VersionInfo
 
 - ***Function***
   - Version parsing and comparison.
 - ***Document***
-  - [VersionInfo.md](./VersionInfo.en.md)
+  - [VersionInfo.en.md](./VersionInfo.en.md)
 
 ### Log
 
 - ***Function***
-  - Log callback registration and logging output.
+  - Log callbacks and log output.
 - ***Document***
-  - [Log.md](./Log.en.md)
+  - [Log.en.md](./Log.en.md)
 
 ### RemoteUpgrade
 
 - ***Function***
-  - Remote controller software upgrade.
+  - Remote upgrade.
 - ***Document***
-  - [RemoteUpgrade.md](./RemoteUpgrade.en.md)
+  - [RemoteUpgrade.en.md](./RemoteUpgrade.en.md)
 
 ### ControllerLog
 
 - ***Function***
-  - Download controller system logs.
+  - Controller system logs.
 - ***Document***
-  - [ControllerLog.md](./ControllerLog.en.md)
-
-### SerialCommunication
-
-- ***Function***
-  - RS485 serial configuration and communication.
-- ***Document***
-  - [SerialCommunication.md](./SerialCommunication.en.md)
-
-### RobotException
-
-- ***Function***
-  - Exception structures and SDK exception model.
-- ***Document***
-  - [RobotException.md](./RobotException.en.md)
-
-### EliteDriverConfig
-
-- ***Function***
-  - Driver constructor configuration options.
-- ***Document***
-  - [EliteDriverConfig.md](./EliteDriverConfig.en.md)
+  - [ControllerLog.en.md](./ControllerLog.en.md)

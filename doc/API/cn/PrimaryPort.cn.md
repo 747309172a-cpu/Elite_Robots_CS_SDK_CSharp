@@ -34,7 +34,7 @@ public bool connect(string ip, int port = 30001)
 ```
 
 - ***功能***
-  - 连接 Primary 端口。
+  - 连接到机器人的30001端口（默认）。
 - ***参数***
   - `ip`：机器人 IP。
   - `port`：端口，默认 `30001`。
@@ -85,7 +85,7 @@ public bool sendScript(string script)
 ### getPackage
 
 ```csharp
-public bool getPackage(out PrimaryKinematicsInfo info, int timeoutMs = 1000)
+public bool getPackage(out KinematicsInfo info, int timeoutMs = 1000)
 ```
 
 - ***功能***
@@ -123,6 +123,24 @@ public void registerWrappedRobotExceptionCallback(Action<RobotException> callbac
   - `callback`：高级异常回调函数。
 - ***返回值***
   - 无。
+### registerRobotExceptionCallback
+
+```csharp
+public void registerRobotExceptionCallback(
+    Action<RobotError> onRobotError,
+    Action<RobotRuntimeException> onRuntimeException,
+    Action<RobotDisconnectedException>? onDisconnected = null)
+```
+
+- ***功能***
+  - 注册按类型分发的异常回调。
+- ***参数***
+  - `onRobotError`：机器人错误回调。
+  - `onRuntimeException`：脚本运行时异常回调。
+  - `onDisconnected`：机器人断连回调（可选）。
+- ***返回值***
+  - 无。
+
 
 ### clearRobotExceptionCallback
 
@@ -154,10 +172,10 @@ public void Dispose()
 
 ## 数据类型
 
-### PrimaryKinematicsInfo
+### KinematicsInfo
 
 ```csharp
-public sealed class PrimaryKinematicsInfo
+public sealed class KinematicsInfo
 {
     public double[] DhA { get; init; }
     public double[] DhD { get; init; }

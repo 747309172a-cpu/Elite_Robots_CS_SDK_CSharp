@@ -209,7 +209,7 @@ public sealed class EliteDriver : IDisposable
         return success != 0;
     }
 
-    public bool getPrimaryPackage(PrimaryKinematicsInfo pkg, int timeout_ms)
+    public bool getPrimaryPackage(KinematicsInfo pkg, int timeout_ms)
     {
         ArgumentNullException.ThrowIfNull(pkg);
         ValidateVector6(pkg.DhA, nameof(pkg.DhA));

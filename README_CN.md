@@ -3,12 +3,12 @@
 
 本仓库提供 Elite Robots CS SDK 的 C# 绑定。
 默认情况下，`dotnet build` 和 `dotnet run` 会在缺少原生 C 封装库 `elite_cs_series_sdk_c` 时自动拉取并编译。
-该自动准备流程要求本机已具备 `git`、`cmake`、C/C++ 编译器以及可访问依赖仓库的网络环境。
-如果没有显式指定 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导同一 owner 下的 `Elite_Robots_CS_SDK_C.git`。
+
 
 ## 要求
 - ***CS Controller*** (机器人的控制软件) 如果使用 2.13.x 则需要 >= **2.13.4**(for CS-Series)，如果使用2.14.x 则需要 >= **2.14.2**。 如果机器人的控制软件版本低于此，建议升级。
 - .NET SDK 8.0+
+- git、cmake、C/C++ 编译器
 
 ## 编译与安装
 编译安装的方式参考：[编译安装向导](./doc/BuildGuide/BuildGuide.cn.md)

@@ -117,6 +117,9 @@ public static class EliteLog
 
     public static void setLogLevel(LogLevel level) => NativeMethods.elite_set_log_level((int)level);
 
+    public static void logMessage(string file, int line, LogLevel level, string msg) =>
+        NativeMethods.elite_log_message(file, line, (int)level, msg);
+
     public static void logDebugMessage(string file, int line, string msg) =>
         NativeMethods.elite_log_debug_message(file, line, msg);
 

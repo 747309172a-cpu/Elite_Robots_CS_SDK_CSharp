@@ -97,16 +97,19 @@ public sealed class EliteDriver : IDisposable
         return success != 0;
     }
 
-    public void setTrajectoryResultCallback(Action<TrajectoryMotionResult> cb)
+    public void setTrajectoryResultCallback(Action<TrajectoryMotionResult>? cb)
     {
-        ArgumentNullException.ThrowIfNull(cb);
         _managedTrajectoryResultCallback = cb;
-        _nativeTrajectoryResultCallback ??= OnNativeTrajectoryResult;
         var status = NativeMethods.elite_driver_set_trajectory_result_callback(
             _handle.DangerousGetHandle(),
-            _nativeTrajectoryResultCallback,
-            GCHandle.ToIntPtr(_selfHandle));
+            cb is null ? null : (_nativeTrajectoryResultCallback ??= OnNativeTrajectoryResult),
+            cb is null ? nint.Zero : GCHandle.ToIntPtr(_selfHandle));
         ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
+    public void clearTrajectoryResultCallback()
+    {
+        setTrajectoryResultCallback(null);
     }
 
     public bool writeTrajectoryPoint(double[] positions, float time, float blend_radius, bool cartesian)
@@ -266,6 +269,17 @@ public sealed class EliteDriver : IDisposable
             _nativeRobotExceptionCallback,
             GCHandle.ToIntPtr(_selfHandle));
         ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
+    public void clearRobotExceptionCallback()
+    {
+        var status = NativeMethods.elite_driver_register_robot_exception_callback(
+            _handle.DangerousGetHandle(),
+            null,
+            nint.Zero);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        _managedRobotExceptionCallback = null;
+        _managedWrappedRobotExceptionCallback = null;
     }
 
     public EliteSerialCommunication? startToolRs485(SerialConfig config, string ssh_password, int tcp_port = 54321)

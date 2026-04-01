@@ -64,6 +64,22 @@ public static void setLogLevel(LogLevel level)
 - ***返回值***
   - 无。
 
+### logMessage
+
+```csharp
+public static void logMessage(string file, int line, LogLevel level, string msg)
+```
+
+- ***功能***
+  - 按指定日志级别输出日志。
+- ***参数***
+  - `file`：文件名。
+  - `line`：行号。
+  - `level`：日志级别。
+  - `msg`：日志消息。
+- ***返回值***
+  - 无。
+
 ### logDebugMessage
 
 ```csharp
@@ -155,5 +171,6 @@ EliteLog.registerLogHandler((file, line, level, msg) =>
 });
 
 EliteLog.setLogLevel(LogLevel.ELI_DEBUG);
+EliteLog.logMessage("elite_log.cs", 0, LogLevel.ELI_INFO, "This is an info message");
 EliteLog.logDebugMessage("elite_log.cs", 1, "This is a debug message");
 ```

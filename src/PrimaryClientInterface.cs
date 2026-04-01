@@ -137,6 +137,11 @@ public sealed class PrimaryClientInterface : IDisposable
 
     public void clearRobotExceptionCallback()
     {
+        var status = NativeMethods.elite_primary_register_robot_exception_callback(
+            _handle.DangerousGetHandle(),
+            null,
+            nint.Zero);
+        ThrowIfError(status, _handle.DangerousGetHandle());
         _managedRobotExceptionCallback = null;
         _managedWrappedRobotExceptionCallback = null;
         _managedRobotErrorCallback = null;

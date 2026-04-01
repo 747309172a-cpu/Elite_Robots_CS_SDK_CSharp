@@ -150,6 +150,7 @@ public void clearRobotExceptionCallback()
 
 - ***功能***
   - 清除异常回调。
+  - 调用后会同步取消 native 层已注册的异常回调。
 - ***参数***
   - 无。
 - ***返回值***

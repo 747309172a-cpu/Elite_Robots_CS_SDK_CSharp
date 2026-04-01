@@ -416,6 +416,9 @@ internal static partial class NativeMethods
     internal static extern nint elite_dashboard_last_error_message(nint handle);
 
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint elite_dashboard_global_last_error_message();
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EliteStatus elite_rtsi_client_create(out nint outHandle);
 
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
@@ -620,7 +623,7 @@ internal static partial class NativeMethods
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EliteStatus elite_primary_register_robot_exception_callback(
         nint handle,
-        ElitePrimaryRobotExceptionCallback cb,
+        ElitePrimaryRobotExceptionCallback? cb,
         nint userData);
 }
 

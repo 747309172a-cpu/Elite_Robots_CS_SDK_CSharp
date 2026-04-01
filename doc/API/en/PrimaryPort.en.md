@@ -150,6 +150,7 @@ public void clearRobotExceptionCallback()
 
 - ***Function***
   - Clear exception callbacks.
+  - This also unregisters the callback from the native layer.
 - ***Parameters***
   - None.
 - ***Return Value***

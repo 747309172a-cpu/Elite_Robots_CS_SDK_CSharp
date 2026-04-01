@@ -7,34 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../src/wrapper_csharp/elite_cs_sdk.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../build/wrapper/libelite_cs_series_sdk_c.so')">
-    <Content Include="$(MSBuildThisFileDirectory)../build/wrapper/libelite_cs_series_sdk_c.so">
-      <Link>libelite_cs_series_sdk_c.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../build/libelite-cs-series-sdk.so')">
-    <Content Include="$(MSBuildThisFileDirectory)../build/libelite-cs-series-sdk.so">
-      <Link>libelite-cs-series-sdk.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../build/wrapper/elite_cs_series_sdk_c.dll')">
-    <Content Include="$(MSBuildThisFileDirectory)../build/wrapper/elite_cs_series_sdk_c.dll">
-      <Link>elite_cs_series_sdk_c.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)../build/elite-cs-series-sdk.dll')">
-    <Content Include="$(MSBuildThisFileDirectory)../build/elite-cs-series-sdk.dll">
-      <Link>elite-cs-series-sdk.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="../src/elite_cs_sdk.csproj" />
   </ItemGroup>
 </Project>

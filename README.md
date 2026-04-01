@@ -1,7 +1,10 @@
 [中文](./README_CN.md)
 # Elite Robots CS SDK (C#)
 
-This repository is based on **CMake** and provides C# bindings for the Elite Robots CS C++ SDK.
+This repository provides C# bindings for the Elite Robots CS SDK.
+By default, `dotnet build` and `dotnet run` will automatically fetch and build the native C wrapper `elite_cs_series_sdk_c` when it is missing.
+The bootstrap step expects `git`, `cmake`, a C/C++ compiler, and network access to the native dependency repository.
+If `EliteNativeRepoUrl` is not provided, the build will try to derive the native repository URL from the current `origin` remote and use the sibling repository `Elite_Robots_CS_SDK_C.git`.
 
 ## Requirements
 - ***CS Controller*** (robot controller software):

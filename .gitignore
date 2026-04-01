@@ -2,4 +2,8 @@ build/
 nupkg/
 **/bin/
 **/obj/
+.native-src/
+.native-build/
+.native-out/
 .vscode
+.codex

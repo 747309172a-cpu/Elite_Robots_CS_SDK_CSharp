@@ -4,8 +4,7 @@
 
 Repository layout:
 
-- `src/wrapper_csharp`: C# wrapper library (based on `P/Invoke` and `SafeHandle`)
-- `src/wrapper_c`: C wrapper library (wrapping interfaces from Elite_Robots_CS_SDK)
+- `src`: C# wrapper library (based on `P/Invoke` and `SafeHandle`)
 - `example`: runnable C# sample program
 
 C# call chain:
@@ -17,9 +16,14 @@ C# call chain:
 ## 2. Prerequisites
 
 - .NET SDK 8.0+
-- CMake + C++ compiler
-- Linux: `gcc/g++` or `clang/clang++` is recommended
-- Windows: Visual Studio 2022 / Build Tools 2022 with MSVC and CMake is recommended
+- `git`
+- `cmake`
+- C/C++ compiler toolchain
+- Network access to the native wrapper repository and, when needed, the upstream C++ SDK repository
+
+By default, this repository bootstraps the native wrapper automatically during `dotnet build` or `dotnet run`.
+The build downloads the separate native C wrapper repository, builds `elite_cs_series_sdk_c`, and copies the resulting native binaries into the current .NET output directory.
+If `EliteNativeRepoUrl` is not set explicitly, the build tries to derive it from the current `origin` remote and use the sibling repository `Elite_Robots_CS_SDK_C.git`.
 
 ---
 
@@ -27,52 +31,12 @@ C# call chain:
 
 Run the following from the repository root.
 
-### 3.1 Build local `wrapper_c` library
-
-#### Linux
-
-```bash
-cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
-cmake --build build/wrapper -j4
-sudo cmake --install build/wrapper
-sudo ldconfig
-```
-
-`ELITE_INSTALL=ON` installs the built library into the system path.
-`ELITE_AUTO_FETCH_SDK=ON` means the build will check whether the required SDK library exists locally; if not, it will fetch and build it automatically.
-
-Expected Linux output:
-
-- `build/wrapper/libelite_cs_series_sdk_c.so`
-- `/usr/local/lib/libelite_cs_series_sdk_c.so`
-
-#### Windows
-
-Run the following in “x64 Native Tools Command Prompt for VS 2022” or in a shell with a correctly configured MSVC environment:
-
-```bash
-cmake -S src/wrapper_c -B build/wrapper -A x64 -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
-cmake --build build/wrapper --config Release
-cmake --install build/wrapper --config Release
-```
-
-Expected Windows output:
-
-- `build/wrapper/Release/elite_cs_series_sdk_c.dll`
-- `build/wrapper/Release/elite_cs_series_sdk_c.lib`
-- installed `elite_cs_series_sdk_c.dll`
-
-Notes:
-
-- `ldconfig` is not needed on Windows
-- If you do not run `cmake --install`, make sure `elite_cs_series_sdk_c.dll` and its dependent DLLs are in the executable directory or available via `PATH`
-
-### 3.2 Build C# projects
+### 3.1 Build C# projects
 
 Build the C# wrapper:
 
 ```bash
-dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
+dotnet build src/elite_cs_sdk.csproj
 ```
 
 Build the example project:
@@ -84,10 +48,37 @@ dotnet build example/example.csproj
 Create NuGet package (optional, for external projects):
 
 ```bash
-dotnet pack src/wrapper_csharp/elite_cs_sdk.csproj -c Release -o ./nupkg
+dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
 ```
 
 The `dotnet build` and `dotnet pack` commands are the same on Linux and Windows.
+
+The first build may take longer because it may:
+
+- Clone the native wrapper repository into `.native-src/`
+- Build native outputs under `.native-build/`
+- Cache native runtime files under `.native-out/`
+- Copy the runtime files into the current `bin/` output directory
+
+### 3.2 Optional build properties
+
+You can override the bootstrap behavior with MSBuild properties:
+
+```bash
+dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+Property meanings:
+
+- `EliteAutoBootstrapNative`: enable or disable automatic native bootstrap
+- `EliteNativeRepoUrl`: native wrapper repository URL
+- `EliteNativeRepoRef`: git branch/tag/commit used for the native wrapper
+- `EliteForceNativeRebuild`: ignore cached native output and rebuild
+
+If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible.
 
 ---
 
@@ -262,13 +253,13 @@ Recipe file locations:
 
 ### 9.1 `DllNotFoundException: elite_cs_series_sdk_c`
 
-- Linux:
-  - Ensure `build/wrapper/libelite_cs_series_sdk_c.so` exists
-  - If installed system-wide, make sure `sudo cmake --install build/wrapper` and `sudo ldconfig` have been run
-- Windows:
-  - Ensure `build/wrapper/Release/elite_cs_series_sdk_c.dll` exists
-  - Ensure `elite_cs_series_sdk_c.dll` and its dependent DLLs are in the output directory or available through `PATH`
-- Re-run `dotnet build` after updating native libraries
+- Re-run `dotnet build` and make sure automatic bootstrap is enabled
+- If automatic bootstrap is disabled, ensure the native library is manually available to the runtime loader
+- If bootstrap fails, verify:
+  - `git`, `cmake`, and the C/C++ compiler are installed
+  - the machine can access the native repository URL
+  - the native repository can access the upstream SDK when `ELITE_AUTO_FETCH_SDK=ON` is needed
+  - if the URL is derived automatically, the current repository `origin` actually points to the matching owner/fork
 
 ### 9.2 Serial sample reports `SSH connection failed: Connection refused`
 

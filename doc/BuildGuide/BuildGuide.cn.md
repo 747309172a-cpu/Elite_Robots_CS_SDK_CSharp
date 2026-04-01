@@ -4,8 +4,7 @@
 
 仓库目录包含：
 
-- `src/wrapper_csharp`：C# 封装库（基于 `P/Invoke` 与 `SafeHandle`）
-- `src/wrapper_c`：C封装库（封装Elite_Robots_CS_SDK相关接口）
+- `src`：C# 封装库（基于 `P/Invoke` 与 `SafeHandle`）
 - `example`：可直接运行的 C# 示例程序
 
 C# 调用链：
@@ -17,66 +16,25 @@ C# 调用链：
 ## 2. 构建前提
 
 - .NET SDK 8.0+
-- CMake + C++ 编译器
-- Linux：建议使用 `gcc/g++` 或 `clang/clang++`
-- Windows：
-使用vcpkg安装
-```bash
-  .\vcpkg install boost-asio
+- `git`
+- `cmake`
+- C/C++ 编译器工具链
+- 可访问原生 C 封装仓库的网络环境；如本机缺少上游 C++ SDK，还需要能访问上游 SDK 仓库
 
-  .\vcpkg install libssh
-
-  .\vcpkg integrate install
-```
+默认情况下，本仓库会在 `dotnet build` 或 `dotnet run` 时自动准备原生依赖。
+构建流程会拉取独立的 native C 封装仓库、编译 `elite_cs_series_sdk_c`，并把生成的原生库复制到当前 .NET 输出目录。
+如果没有显式设置 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导同一 owner 下的 `Elite_Robots_CS_SDK_C.git`。
   
 ---
 
 ## 3. 构建步骤
 
-### 3.1 编译本地 `wrapper_c` 库
-
-#### Linux
-
-```bash
-cd <clone of this repository>
-cmake -S src/wrapper_c -B build/wrapper -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
-cmake --build build/wrapper -j4
-sudo cmake --install build/wrapper
-sudo ldconfig
-```
-
-`ELITE_INSTALL=ON` 表示安装到系统目录。  
-`ELITE_AUTO_FETCH_SDK=ON` 表示当本机未找到 Elite C++ SDK 时，自动拉取并编译。
-
-Linux 期望生成：
-
-- `build/wrapper/libelite_cs_series_sdk_c.so`
-- `/usr/local/lib/libelite_cs_series_sdk_c.so`
-
-#### Windows
-
-```bash
-cd <clone of this repository>
-cmake -S src/wrapper_c -B build/wrapper -A x64 -DELITE_INSTALL=ON -DELITE_AUTO_FETCH_SDK=ON
-cmake --build build/wrapper --config Release
-cmake --install build/wrapper --config Release
-```
-
-Windows 期望生成：
-
-- `build/wrapper/Release/elite_cs_series_sdk_c.dll`
-- `build/wrapper/Release/elite_cs_series_sdk_c.lib`
-- 安装目录中的 `elite_cs_series_sdk_c.dll`
-
-说明：
-- 如果未使用 `cmake --install`，则运行 C# 程序时需要确保 `elite_cs_series_sdk_c.dll` 及其依赖 DLL 在可执行程序目录，或已加入 `PATH`
-
-### 3.2 编译 C# 项目
+### 3.1 编译 C# 项目
 
 编译c#端wrapper接口
 Windows 和 Linux 中下述编译命令相同。
 ```bash
-dotnet build src/wrapper_csharp/elite_cs_sdk.csproj
+dotnet build src/elite_cs_sdk.csproj
 ```
 
 编译example
@@ -86,8 +44,35 @@ dotnet build example/example.csproj
 
 生成NuGet包(非必须，生成可供外部项目调用包)
 ```bash
-dotnet pack src/wrapper_csharp/elite_cs_sdk.csproj -c Release -o ./nupkg
+dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
 ```
+
+首次构建时间可能会更长，因为会自动执行以下步骤：
+
+- 将 native 封装仓库克隆到 `.native-src/`
+- 在 `.native-build/` 下编译原生库
+- 将可复用的原生产物缓存到 `.native-out/`
+- 把运行所需的原生库复制到当前 `bin/` 输出目录
+
+### 3.2 可选构建参数
+
+可以通过 MSBuild 属性覆盖默认 bootstrap 行为：
+
+```bash
+dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+参数含义：
+
+- `EliteAutoBootstrapNative`：是否启用自动准备 native 依赖
+- `EliteNativeRepoUrl`：native 封装仓库地址
+- `EliteNativeRepoRef`：native 封装仓库使用的分支、tag 或 commit
+- `EliteForceNativeRebuild`：忽略本地缓存并强制重新编译
+
+如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址。
 
 ---
 
@@ -148,7 +133,6 @@ dotnet run --project example -- connect_robot_test 172.16.102.156 --server-port 
 
 ## 6. 外部c#项目使用示例
 **此步需要执行前面生成NuGet包步骤**
-
 
 进入项目目录
 ```bash
@@ -252,13 +236,13 @@ dotnet run
 
 ### 9.1 `DllNotFoundException: elite_cs_series_sdk_c`
 
-- Linux：
-  - 确保已生成 `build/wrapper/libelite_cs_series_sdk_c.so`
-  - 如安装到系统目录，执行过 `sudo cmake --install build/wrapper` 和 `sudo ldconfig`
-- Windows：
-  - 确保已生成 `build/wrapper/Release/elite_cs_series_sdk_c.dll`
-  - 确保 `elite_cs_series_sdk_c.dll` 以及其依赖 DLL 位于程序输出目录，或已加入 `PATH`
-- 本地库更新后重新 `dotnet build`
+- 先重新执行 `dotnet build`，确认自动 bootstrap 处于启用状态
+- 如果关闭了自动 bootstrap，则需要自行保证 native 库对运行时可见
+- 如果 bootstrap 失败，重点检查：
+  - `git`、`cmake`、C/C++ 编译器是否已安装
+  - 机器是否能访问 native 封装仓库
+  - native 封装在需要 `ELITE_AUTO_FETCH_SDK=ON` 时，是否能继续访问上游 SDK 仓库
+  - 如果仓库地址是自动推导的，当前仓库的 `origin` 是否确实对应正确的 owner 或 fork
 
 ### 9.2 串口示例报 `SSH connection failed: Connection refused`
 

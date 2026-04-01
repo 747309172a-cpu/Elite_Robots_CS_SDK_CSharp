@@ -64,6 +64,22 @@ public static void setLogLevel(LogLevel level)
 - ***Return Value***
   - None.
 
+### logMessage
+
+```csharp
+public static void logMessage(string file, int line, LogLevel level, string msg)
+```
+
+- ***Function***
+  - Output a log message with the specified log level.
+- ***Parameters***
+  - `file`: file name.
+  - `line`: line number.
+  - `level`: log level.
+  - `msg`: log message.
+- ***Return Value***
+  - None.
+
 ### logDebugMessage
 
 ```csharp
@@ -155,5 +171,6 @@ EliteLog.registerLogHandler((file, line, level, msg) =>
 });
 
 EliteLog.setLogLevel(LogLevel.ELI_DEBUG);
+EliteLog.logMessage("elite_log.cs", 0, LogLevel.ELI_INFO, "This is an info message");
 EliteLog.logDebugMessage("elite_log.cs", 1, "This is a debug message");
 ```

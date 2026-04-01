@@ -282,7 +282,7 @@ public sealed class DashboardClientInterface : IDisposable
 
         var msgPtr = handle != nint.Zero
             ? NativeMethods.elite_dashboard_last_error_message(handle)
-            : NativeMethods.elite_c_last_error_message();
+            : NativeMethods.elite_dashboard_global_last_error_message();
         var message = Marshal.PtrToStringUTF8(msgPtr);
         if (string.IsNullOrWhiteSpace(message))
         {

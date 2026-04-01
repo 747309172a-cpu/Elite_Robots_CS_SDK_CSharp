@@ -152,14 +152,28 @@ public bool writeFreedrive(FreedriveAction action, int timeout_ms)
 ### setTrajectoryResultCallback
 
 ```csharp
-public void setTrajectoryResultCallback(Action<TrajectoryMotionResult> cb)
+public void setTrajectoryResultCallback(Action<TrajectoryMotionResult>? cb)
 ```
 
 - ***Function***
   - Register a callback function that is triggered when a trajectory finishes. One way to control the robot is to send all waypoints to the robot at once. When execution is completed, the callback registered here will be triggered.
+  - Passing `null` unregisters the currently registered trajectory result callback.
 
 - ***Parameters***
-  - `cb`: trajectory result callback function.
+  - `cb`: trajectory result callback function; pass `null` to unregister it.
+- ***Return Value***
+  - None.
+
+### clearTrajectoryResultCallback
+
+```csharp
+public void clearTrajectoryResultCallback()
+```
+
+- ***Function***
+  - Clear the currently registered trajectory result callback.
+- ***Parameters***
+  - None.
 - ***Return Value***
   - None.
 
@@ -333,6 +347,19 @@ public void registerWrappedRobotExceptionCallback(Action<RobotException> cb)
   - Register a wrapped exception callback. The callback argument is mapped to `RobotDisconnectedException`, `RobotError`, or `RobotRuntimeException`.
 - ***Parameters***
   - `cb`: wrapped exception callback function.
+- ***Return Value***
+  - None.
+
+### clearRobotExceptionCallback
+
+```csharp
+public void clearRobotExceptionCallback()
+```
+
+- ***Function***
+  - Clear the currently registered robot exception callbacks, including both raw and wrapped exception callbacks.
+- ***Parameters***
+  - None.
 - ***Return Value***
   - None.
 

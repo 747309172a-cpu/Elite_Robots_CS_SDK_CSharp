@@ -153,14 +153,28 @@ public bool writeFreedrive(FreedriveAction action, int timeout_ms)
 ### setTrajectoryResultCallback
 
 ```csharp
-public void setTrajectoryResultCallback(Action<TrajectoryMotionResult> cb)
+public void setTrajectoryResultCallback(Action<TrajectoryMotionResult>? cb)
 ```
 
 - ***功能***
   - 注册轨迹完成时的回调函数。控制机器人的一种方式是将路点一次性发给机器人，当执行完成时，这里注册的回调函数将被触发。
+  - 传入 `null` 时会取消当前已注册的轨迹结果回调。
 
 - ***参数***
-  - `cb`：轨迹结果回调函数。
+  - `cb`：轨迹结果回调函数；传入 `null` 表示取消注册。
+- ***返回值***
+  - 无。
+
+### clearTrajectoryResultCallback
+
+```csharp
+public void clearTrajectoryResultCallback()
+```
+
+- ***功能***
+  - 清除当前已注册的轨迹结果回调。
+- ***参数***
+  - 无。
 - ***返回值***
   - 无。
 
@@ -334,6 +348,19 @@ public void registerWrappedRobotExceptionCallback(Action<RobotException> cb)
   - 注册高级异常回调，回调参数会被映射为 `RobotDisconnectedException` / `RobotError` / `RobotRuntimeException`。
 - ***参数***
   - `cb`：高级异常回调函数。
+- ***返回值***
+  - 无。
+
+### clearRobotExceptionCallback
+
+```csharp
+public void clearRobotExceptionCallback()
+```
+
+- ***功能***
+  - 清除当前已注册的机器人异常回调，包括原始异常回调和高级异常回调。
+- ***参数***
+  - 无。
 - ***返回值***
   - 无。
 

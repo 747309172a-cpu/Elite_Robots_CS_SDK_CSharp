@@ -134,6 +134,9 @@ dotnet run --project example -- connect_robot_test 172.16.102.156 --server-port 
 ## 6. 外部c#项目使用示例
 **此步需要执行前面生成NuGet包步骤**
 
+NuGet 包内已经包含了与本仓库相同的 bootstrap targets。
+因此外部项目通过包引用时，构建阶段同样会自动准备 native 依赖，但也同样要求本机具备 `git`、`cmake`、C/C++ 编译器以及可访问依赖仓库的网络环境。
+
 进入项目目录
 ```bash
 cd myproject/

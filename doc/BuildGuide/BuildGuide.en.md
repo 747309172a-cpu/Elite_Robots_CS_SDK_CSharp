@@ -141,6 +141,9 @@ dotnet run --project example -- connect_robot_test 172.16.102.156 --server-port 
 
 **This step requires the NuGet package generated above.**
 
+The NuGet package includes transitive MSBuild targets that run the same native bootstrap flow used by this repository.
+That means package consumers also need `git`, `cmake`, a C/C++ compiler, and network access to the native repositories.
+
 Go to your project directory:
 
 ```bash

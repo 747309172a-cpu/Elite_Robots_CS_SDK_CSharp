@@ -1,0 +1,27 @@
+<Project>
+  <PropertyGroup>
+    <EliteAutoBootstrapNative Condition="'$(EliteAutoBootstrapNative)' == ''">true</EliteAutoBootstrapNative>
+    <EliteNativeRepoUrl Condition="'$(EliteNativeRepoUrl)' == ''">https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git</EliteNativeRepoUrl>
+    <EliteNativeRepoRef Condition="'$(EliteNativeRepoRef)' == ''">main</EliteNativeRepoRef>
+    <EliteForceNativeRebuild Condition="'$(EliteForceNativeRebuild)' == ''">false</EliteForceNativeRebuild>
+    <EliteProjectOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutputPath)'))</EliteProjectOutputDir>
+  </PropertyGroup>
+
+  <Target
+    Name="EliteBootstrapNativeUnixFromPackage"
+    BeforeTargets="Build"
+    Condition="'$(EliteAutoBootstrapNative)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OS)' != 'Windows_NT'">
+    <MakeDir Directories="$(EliteProjectOutputDir)" />
+    <Exec
+      Command="bash &quot;$(MSBuildThisFileDirectory)bootstrap-native.sh&quot; &quot;$(MSBuildProjectDirectory)&quot; &quot;$(EliteProjectOutputDir)&quot; &quot;$(EliteNativeRepoUrl)&quot; &quot;$(EliteNativeRepoRef)&quot; &quot;$(EliteForceNativeRebuild)&quot;" />
+  </Target>
+
+  <Target
+    Name="EliteBootstrapNativeWindowsFromPackage"
+    BeforeTargets="Build"
+    Condition="'$(EliteAutoBootstrapNative)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OS)' == 'Windows_NT'">
+    <MakeDir Directories="$(EliteProjectOutputDir)" />
+    <Exec
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)bootstrap-native.ps1&quot; -RepoRoot &quot;$(MSBuildProjectDirectory)&quot; -ProjectOutputDir &quot;$(EliteProjectOutputDir)&quot; -RepoUrl &quot;$(EliteNativeRepoUrl)&quot; -RepoRef &quot;$(EliteNativeRepoRef)&quot; -ForceRebuild:$([System.String]::Copy('$(EliteForceNativeRebuild)').ToLowerInvariant())" />
+  </Target>
+</Project>

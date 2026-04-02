@@ -13,5 +13,12 @@
     <Company>Elite Robots</Company>
     <Description>C# bindings for the Elite Robots CS SDK.</Description>
     <PackageTags>Elite Robots;CSharp;SDK;Robot</PackageTags>
+    <NoWarn>$(NoWarn);NU5110;NU5111</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="elite_cs_sdk.targets" Pack="true" PackagePath="buildTransitive/elite_cs_sdk.targets" />
+    <None Include="../scripts/bootstrap-native.sh" Pack="true" PackagePath="buildTransitive/bootstrap-native.sh" />
+    <None Include="../scripts/bootstrap-native.ps1" Pack="true" PackagePath="buildTransitive/bootstrap-native.ps1" />
+  </ItemGroup>
 </Project>

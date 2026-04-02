@@ -258,14 +258,18 @@ Recipe file locations:
 
 ### 9.1 `DllNotFoundException: elite_cs_series_sdk_c`
 
-- Re-run `dotnet build` and make sure automatic bootstrap is enabled
-- If automatic bootstrap is disabled, ensure the native library is manually available to the runtime loader
-- If bootstrap fails, verify:
-  - `git`, `cmake`, and the C/C++ compiler are installed
-  - the machine can access the native repository URL
-  - the native repository can access the upstream SDK when `ELITE_AUTO_FETCH_SDK=ON` is needed
-  - if the URL is derived automatically, the current repository `origin` actually points to the matching owner/fork
-  - if GitHub is not reachable in the current network, make sure Gitee is reachable instead
+- If you are building this repository directly:
+  - Re-run `dotnet build` and make sure automatic bootstrap is enabled
+  - If automatic bootstrap fails, verify:
+    - `git`, `cmake`, and the C/C++ compiler are installed
+    - the machine can access the native repository URL
+    - the native repository can access the upstream SDK when `ELITE_AUTO_FETCH_SDK=ON` is needed
+    - if the URL is derived automatically, the current repository `origin` actually points to the matching owner/fork
+    - if GitHub is not reachable in the current network, make sure Gitee is reachable instead
+- If you are using the NuGet package from another project:
+  - Make sure you referenced a package built after the native runtime files were prepared under `.native-out/`
+  - Re-add the package after updating to a newer package version if the old package cache is still being used
+  - Confirm the native library file has been copied into the project output directory
 
 ### 9.2 Serial sample reports `SSH connection failed: Connection refused`
 

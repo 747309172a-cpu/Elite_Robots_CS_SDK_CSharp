@@ -24,7 +24,6 @@ C# 调用链：
 默认情况下，本仓库会在 `dotnet build` 或 `dotnet run` 时自动准备原生依赖。
 构建流程会拉取独立的 native C 封装仓库、编译 `elite_cs_series_sdk_c`，并把生成的原生库复制到当前 .NET 输出目录。
 如果没有显式设置 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导。
-下载 native 仓库时，bootstrap 逻辑会自动在 GitHub 和 Gitee 镜像之间切换尝试。
   
 ---
 
@@ -242,14 +241,18 @@ dotnet run
 
 ### 9.1 `DllNotFoundException: elite_cs_series_sdk_c`
 
-- 先重新执行 `dotnet build`，确认自动 bootstrap 处于启用状态
-- 如果关闭了自动 bootstrap，则需要自行保证 native 库对运行时可见
-- 如果 bootstrap 失败，重点检查：
-  - `git`、`cmake`、C/C++ 编译器是否已安装
-  - 机器是否能访问 native 封装仓库
-  - native 封装在需要 `ELITE_AUTO_FETCH_SDK=ON` 时，是否能继续访问上游 SDK 仓库
-  - 如果仓库地址是自动推导的，当前仓库的 `origin` 是否确实对应正确的 owner 或 fork
-  - 如果当前网络无法访问 GitHub，确认 Gitee 是否可访问
+- 如果你是直接构建本仓库：
+  - 先重新执行 `dotnet build`，确认自动 bootstrap 处于启用状态
+  - 如果自动 bootstrap 失败，重点检查：
+    - `git`、`cmake`、C/C++ 编译器是否已安装
+    - 机器是否能访问 native 封装仓库
+    - native 封装在需要 `ELITE_AUTO_FETCH_SDK=ON` 时，是否能继续访问上游 SDK 仓库
+    - 如果仓库地址是自动推导的，当前仓库的 `origin` 是否确实对应正确的 owner 或 fork
+    - 如果当前网络无法访问 GitHub，确认 Gitee 是否可访问
+- 如果你是在其他项目里通过 NuGet 包引用：
+  - 确认打包前 `.native-out/` 下已经准备好了对应平台的 native 运行库
+  - 如果你更新了包但仍在使用旧缓存，请升级包版本后重新添加引用
+  - 确认 native 库文件已经被复制到项目输出目录
 
 ### 9.2 串口示例报 `SSH connection failed: Connection refused`
 

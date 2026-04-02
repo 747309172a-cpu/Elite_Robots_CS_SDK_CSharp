@@ -146,14 +146,13 @@ cd myproject/
 ```bash
 dotnet add package elite_cs_sdk --version 0.1.1 --source /xxxxx/nupkg
 ```
-source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的本地nupkg文件目录
-如果需要分发多个平台，请先准备好对应平台的 native 输出，再执行 `dotnet pack`。
+source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的本地nupkg文件目录，如果需要分发多个平台，请先准备好对应平台的 native 输出，再执行 `dotnet pack`。
 
 代码示例：
 ```csharp
 using EliteRobots.CSharp;     //所有接口统一命名空间
 
-var ip = args.Length > 0 ? args[0] : "172.16.102.156";   //机器人默认ip地址
+var ip = args.Length > 0 ? args[0] : "172.16.102.156";   //机器人默认ip地址，需修改成自己的机器人ip
 
 using var dash = new DashboardClientInterface(); 
 if (!dash.connect(ip))

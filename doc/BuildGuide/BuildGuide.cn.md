@@ -136,8 +136,8 @@ dotnet run --project example -- connect_robot_test 172.16.102.156 --server-port 
 ## 6. 外部c#项目使用示例
 **此步需要执行前面生成NuGet包步骤**
 
-NuGet 包内已经包含了与本仓库相同的 bootstrap targets。
-因此外部项目通过包引用时，构建阶段同样会自动准备 native 依赖，但也同样要求本机具备 `git`、`cmake`、C/C++ 编译器以及可访问依赖仓库的网络环境。
+执行 `dotnet pack` 时，NuGet 包会把当前 `.native-out/` 下已经准备好的 native 运行库一并打进去。
+外部项目通过包引用后，构建阶段只会把包内的 native 库复制到输出目录，不会再次编译 C 库。
 
 进入项目目录
 ```bash
@@ -145,9 +145,10 @@ cd myproject/
 ```
 从本地添加对应功能包
 ```bash
-dotnet add package elite_cs_sdk --version 0.1.0 --source /xxxxx/nupkg
+dotnet add package elite_cs_sdk --version 0.1.1 --source /xxxxx/nupkg
 ```
 source 后面参数为Elite_Robots_CS_SDK_CSharp项目生成的本地nupkg文件目录
+如果需要分发多个平台，请先准备好对应平台的 native 输出，再执行 `dotnet pack`。
 
 代码示例：
 ```csharp

@@ -23,7 +23,8 @@ C# 调用链：
 
 默认情况下，本仓库会在 `dotnet build` 或 `dotnet run` 时自动准备原生依赖。
 构建流程会拉取独立的 native C 封装仓库、编译 `elite_cs_series_sdk_c`，并把生成的原生库复制到当前 .NET 输出目录。
-如果没有显式设置 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导同一 owner 下的 `Elite_Robots_CS_SDK_C.git`。
+如果没有显式设置 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导。
+下载 native 仓库时，bootstrap 逻辑会自动在 GitHub 和 Gitee 镜像之间切换尝试。
   
 ---
 
@@ -61,6 +62,7 @@ dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
 ```bash
 dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
@@ -72,7 +74,7 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 - `EliteNativeRepoRef`：native 封装仓库使用的分支、tag 或 commit
 - `EliteForceNativeRebuild`：忽略本地缓存并强制重新编译
 
-如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址。
+如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
 
 ---
 
@@ -246,6 +248,7 @@ dotnet run
   - 机器是否能访问 native 封装仓库
   - native 封装在需要 `ELITE_AUTO_FETCH_SDK=ON` 时，是否能继续访问上游 SDK 仓库
   - 如果仓库地址是自动推导的，当前仓库的 `origin` 是否确实对应正确的 owner 或 fork
+  - 如果当前网络无法访问 GitHub，确认 Gitee 是否可访问
 
 ### 9.2 串口示例报 `SSH connection failed: Connection refused`
 

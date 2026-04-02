@@ -23,7 +23,7 @@ C# call chain:
 
 By default, this repository bootstraps the native wrapper automatically during `dotnet build` or `dotnet run`.
 The build downloads the separate native C wrapper repository, builds `elite_cs_series_sdk_c`, and copies the resulting native binaries into the current .NET output directory.
-If `EliteNativeRepoUrl` is not set explicitly, the build tries to derive it from the current `origin` remote and use the sibling repository `Elite_Robots_CS_SDK_C.git`.
+If `EliteNativeRepoUrl` is not set explicitly, the build tries to derive it from the current `origin` remote.
 
 ---
 
@@ -67,6 +67,7 @@ You can override the bootstrap behavior with MSBuild properties:
 ```bash
 dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
+dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
@@ -78,7 +79,7 @@ Property meanings:
 - `EliteNativeRepoRef`: git branch/tag/commit used for the native wrapper
 - `EliteForceNativeRebuild`: ignore cached native output and rebuild
 
-If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible.
+If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
 
 ---
 
@@ -263,6 +264,7 @@ Recipe file locations:
   - the machine can access the native repository URL
   - the native repository can access the upstream SDK when `ELITE_AUTO_FETCH_SDK=ON` is needed
   - if the URL is derived automatically, the current repository `origin` actually points to the matching owner/fork
+  - if GitHub is not reachable in the current network, make sure Gitee is reachable instead
 
 ### 9.2 Serial sample reports `SSH connection failed: Connection refused`
 

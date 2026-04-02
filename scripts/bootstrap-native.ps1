@@ -8,6 +8,55 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Get-DerivedRepoUrl {
+    param([string]$RemoteUrl)
+
+    if ($RemoteUrl -match '^https://github\.com/.+/.+\.git$') {
+        return ($RemoteUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
+    }
+    if ($RemoteUrl -match '^git@github\.com:.+/.+\.git$') {
+        return ($RemoteUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
+    }
+    if ($RemoteUrl -match '^https://gitee\.com/.+/.+\.git$') {
+        return ($RemoteUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
+    }
+    if ($RemoteUrl -match '^git@gitee\.com:.+/.+\.git$') {
+        return ($RemoteUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
+    }
+
+    return ""
+}
+
+function Get-CounterpartRepoUrl {
+    param([string]$Url)
+
+    switch -Regex ($Url) {
+        '^https://github\.com/.+/Elite_Robots_CS_SDK_C\.git$' { return 'https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git' }
+        '^https://gitee\.com/.+/Elite_Robots_CS_SDK_C\.git$' { return 'https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git' }
+        default { return "" }
+    }
+}
+
+function Add-RepoCandidate {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [string]$Candidate
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Candidate)) {
+        return
+    }
+    if (-not $List.Contains($Candidate)) {
+        $List.Add($Candidate)
+    }
+}
+
+$defaultGithubRepo = "https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git"
+$defaultGiteeRepo = "https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git"
+
+$repoCandidates = [System.Collections.Generic.List[string]]::new()
+Add-RepoCandidate -List $repoCandidates -Candidate $RepoUrl
+
 if ([string]::IsNullOrWhiteSpace($RepoUrl)) {
     $originUrl = ""
     try {
@@ -17,14 +66,18 @@ if ([string]::IsNullOrWhiteSpace($RepoUrl)) {
         $originUrl = ""
     }
 
-    if ($originUrl -match '^https://github\.com/.+/.+\.git$') {
-        $RepoUrl = ($originUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
-    } elseif ($originUrl -match '^git@github\.com:.+/.+\.git$') {
-        $RepoUrl = ($originUrl -replace '/[^/]+\.git$', '/Elite_Robots_CS_SDK_C.git')
-    }
+    $RepoUrl = Get-DerivedRepoUrl -RemoteUrl $originUrl
 }
 
-if ([string]::IsNullOrWhiteSpace($RepoUrl)) {
+Add-RepoCandidate -List $repoCandidates -Candidate $RepoUrl
+Add-RepoCandidate -List $repoCandidates -Candidate $defaultGithubRepo
+Add-RepoCandidate -List $repoCandidates -Candidate $defaultGiteeRepo
+
+foreach ($candidate in @($repoCandidates)) {
+    Add-RepoCandidate -List $repoCandidates -Candidate (Get-CounterpartRepoUrl -Url $candidate)
+}
+
+if ($repoCandidates.Count -eq 0) {
     throw "Native repository URL is not set. Pass EliteNativeRepoUrl or configure origin so it can be derived automatically."
 }
 
@@ -47,11 +100,24 @@ New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
 New-Item -ItemType Directory -Force -Path $ProjectOutputDir | Out-Null
 
 if (-not (Test-Path (Join-Path $sourceDir ".git"))) {
-    Write-Host "[bootstrap-native] Cloning $RepoUrl ($RepoRef)..."
-    if (Test-Path $sourceDir) {
-        Remove-Item -Recurse -Force $sourceDir
+    $cloneOk = $false
+    foreach ($candidate in $repoCandidates) {
+        Write-Host "[bootstrap-native] Cloning $candidate ($RepoRef)..."
+        if (Test-Path $sourceDir) {
+            Remove-Item -Recurse -Force $sourceDir
+        }
+        git clone --depth 1 --branch $RepoRef $candidate $sourceDir
+        if ($LASTEXITCODE -eq 0) {
+            $RepoUrl = $candidate
+            $cloneOk = $true
+            break
+        }
+        Write-Host "[bootstrap-native] Clone failed from $candidate, trying next mirror..."
     }
-    git clone --depth 1 --branch $RepoRef $RepoUrl $sourceDir
+
+    if (-not $cloneOk) {
+        throw "Failed to clone native repository from all configured mirrors."
+    }
 }
 
 if ($ForceRebuild -eq "true") {

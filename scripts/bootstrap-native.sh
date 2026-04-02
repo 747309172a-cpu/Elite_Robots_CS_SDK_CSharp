@@ -7,6 +7,9 @@ repo_url="${3:-}"
 repo_ref="${4:-main}"
 force_rebuild="${5:-false}"
 
+default_github_repo="https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git"
+default_gitee_repo="https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git"
+
 derive_repo_url() {
     local remote_url
     remote_url="$(git -C "${repo_root}" remote get-url origin 2>/dev/null || true)"
@@ -23,19 +26,61 @@ derive_repo_url() {
             printf '%s\n' "${remote_url%/*}/Elite_Robots_CS_SDK_C.git"
             return 0
             ;;
+        https://gitee.com/*/*.git)
+            printf '%s\n' "${remote_url%/*}/Elite_Robots_CS_SDK_C.git"
+            return 0
+            ;;
+        git@gitee.com:*.git)
+            printf '%s\n' "${remote_url%/*}/Elite_Robots_CS_SDK_C.git"
+            return 0
+            ;;
     esac
 
     return 1
 }
 
-if [[ -z "${repo_url}" ]]; then
-    repo_url="$(derive_repo_url || true)"
-fi
+counterpart_repo_url() {
+    local url="${1:-}"
+    case "${url}" in
+        https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git)
+            printf '%s\n' "${default_gitee_repo}"
+            ;;
+        https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git)
+            printf '%s\n' "${default_github_repo}"
+            ;;
+        https://github.com/*/Elite_Robots_CS_SDK_C.git)
+            printf '%s\n' "${default_gitee_repo}"
+            ;;
+        https://gitee.com/*/Elite_Robots_CS_SDK_C.git)
+            printf '%s\n' "${default_github_repo}"
+            ;;
+    esac
+}
 
-if [[ -z "${repo_url}" ]]; then
+declare -a repo_candidates=()
+add_repo_candidate() {
+    local candidate="${1:-}"
+    [[ -z "${candidate}" ]] && return 0
+    local existing
+    for existing in "${repo_candidates[@]:-}"; do
+        [[ "${existing}" == "${candidate}" ]] && return 0
+    done
+    repo_candidates+=("${candidate}")
+}
+
+add_repo_candidate "${repo_url}"
+add_repo_candidate "$(derive_repo_url || true)"
+add_repo_candidate "${default_github_repo}"
+add_repo_candidate "${default_gitee_repo}"
+
+if [[ ${#repo_candidates[@]} -eq 0 ]]; then
     echo "Native repository URL is not set. Pass EliteNativeRepoUrl or configure origin so it can be derived automatically." >&2
     exit 1
 fi
+
+for candidate in "${repo_candidates[@]}"; do
+    add_repo_candidate "$(counterpart_repo_url "${candidate}")"
+done
 
 os_name="$(uname -s)"
 arch_name="$(uname -m)"
@@ -72,9 +117,22 @@ esac
 mkdir -p "${repo_root}/.native-src" "${repo_root}/.native-build" "${cache_dir}" "${project_output_dir}"
 
 if [[ ! -d "${source_dir}/.git" ]]; then
-    echo "[bootstrap-native] Cloning ${repo_url} (${repo_ref})..."
-    rm -rf "${source_dir}"
-    git clone --depth 1 --branch "${repo_ref}" "${repo_url}" "${source_dir}"
+    clone_ok="false"
+    for candidate in "${repo_candidates[@]}"; do
+        echo "[bootstrap-native] Cloning ${candidate} (${repo_ref})..."
+        rm -rf "${source_dir}"
+        if git clone --depth 1 --branch "${repo_ref}" "${candidate}" "${source_dir}"; then
+            repo_url="${candidate}"
+            clone_ok="true"
+            break
+        fi
+        echo "[bootstrap-native] Clone failed from ${candidate}, trying next mirror..."
+    done
+
+    if [[ "${clone_ok}" != "true" ]]; then
+        echo "Failed to clone native repository from all configured mirrors." >&2
+        exit 1
+    fi
 fi
 
 if [[ "${force_rebuild}" == "true" ]]; then

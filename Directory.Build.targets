@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <EliteAutoBootstrapNative Condition="'$(EliteAutoBootstrapNative)' == ''">true</EliteAutoBootstrapNative>
-    <EliteNativeRepoUrl Condition="'$(EliteNativeRepoUrl)' == ''">https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git</EliteNativeRepoUrl>
+    <EliteNativeRepoUrl Condition="'$(EliteNativeRepoUrl)' == ''">https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git</EliteNativeRepoUrl>
     <EliteNativeRepoRef Condition="'$(EliteNativeRepoRef)' == ''">main</EliteNativeRepoRef>
     <EliteForceNativeRebuild Condition="'$(EliteForceNativeRebuild)' == ''">false</EliteForceNativeRebuild>
     <EliteProjectOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutputPath)'))</EliteProjectOutputDir>

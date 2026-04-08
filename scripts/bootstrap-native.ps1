@@ -20,48 +20,64 @@ function Invoke-NativeCommand {
     }
 }
 
+function Test-ExternalCommand {
+    param(
+        [Parameter(Mandatory = $true)][string]$CommandName,
+        [string[]]$Arguments = @("--version")
+    )
+
+    $command = Get-Command $CommandName -CommandType Application -ErrorAction SilentlyContinue
+    if (-not $command) {
+        return $false
+    }
+
+    try {
+        & $command.Source @Arguments | Out-Null
+        return $LASTEXITCODE -eq 0
+    }
+    catch {
+        return $false
+    }
+}
+
 function Get-CMakeGeneratorArgs {
     param([string]$RidArch)
 
-    if (Get-Command ninja -ErrorAction SilentlyContinue) {
+    $vswherePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+    if (Test-Path $vswherePath) {
+        $installationVersion = & $vswherePath `
+            -latest `
+            -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationVersion
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($installationVersion)) {
+            $generator = switch (($installationVersion.Trim() -split '\.')[0]) {
+                "17" { "Visual Studio 17 2022" }
+                "16" { "Visual Studio 16 2019" }
+                default { "" }
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($generator)) {
+                $platform = switch ($RidArch) {
+                    "x64" { "x64" }
+                    "arm64" { "ARM64" }
+                    default { "" }
+                }
+
+                if ([string]::IsNullOrWhiteSpace($platform)) {
+                    return @("-G", $generator)
+                }
+
+                return @("-G", $generator, "-A", $platform)
+            }
+        }
+    }
+
+    if (Test-ExternalCommand -CommandName "ninja") {
         return @("-G", "Ninja")
     }
 
-    $vswherePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-    if (-not (Test-Path $vswherePath)) {
-        return @()
-    }
-
-    $installationVersion = & $vswherePath `
-        -latest `
-        -products * `
-        -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-        -property installationVersion
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($installationVersion)) {
-        return @()
-    }
-
-    $generator = switch (($installationVersion.Trim() -split '\.')[0]) {
-        "17" { "Visual Studio 17 2022" }
-        "16" { "Visual Studio 16 2019" }
-        default { "" }
-    }
-
-    if ([string]::IsNullOrWhiteSpace($generator)) {
-        return @()
-    }
-
-    $platform = switch ($RidArch) {
-        "x64" { "x64" }
-        "arm64" { "ARM64" }
-        default { "" }
-    }
-
-    if ([string]::IsNullOrWhiteSpace($platform)) {
-        return @("-G", $generator)
-    }
-
-    return @("-G", $generator, "-A", $platform)
+    return @()
 }
 
 function Get-DerivedRepoUrl {

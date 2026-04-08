@@ -258,7 +258,16 @@ dotnet run
 - `startToolRs485` 依赖控制器 SSH。
 - 检查控制器 SSH 服务是否开启、22 端口是否可达、防火墙/路由是否阻断。
 
-### 9.3 `RtUtils` FIFO 调度警告
+### 9.3 Windows 下出现 `NMAKE fatal error U1052: 未找到文件 "Makefile"`
+
+- 这通常不是根因，而是前面的 `cmake` 配置步骤已经失败，后续 `cmake --build` 又继续执行导致的二次报错。
+- 重点检查：
+  - 是否安装了 Visual Studio 的 C++ 构建工具，或 `Ninja`
+  - `cmake` 是否能找到可用的 C/C++ 编译器
+  - native 封装仓库及其上游依赖仓库是否可访问
+- 更新到包含最新 bootstrap 脚本的版本后，构建会直接显示真实的 `cmake configure` 失败原因，而不是只显示 `NMAKE` 错误。
+
+### 9.4 `RtUtils` FIFO 调度警告
 
 - 这是实时调度优化提示，通常不是致命错误，可忽略。
 

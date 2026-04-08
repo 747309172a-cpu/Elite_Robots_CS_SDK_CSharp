@@ -276,7 +276,16 @@ Recipe file locations:
 - `startToolRs485` depends on controller SSH.
 - Check whether controller SSH is enabled, port 22 is reachable, and firewall/routing is not blocking.
 
-### 9.3 `RtUtils` FIFO scheduling warning
+### 9.3 Windows reports `NMAKE fatal error U1052: cannot open 'Makefile'`
+
+- This is usually not the root cause. It normally means the earlier `cmake` configure step already failed, and `cmake --build` was still executed afterwards.
+- Verify:
+  - Visual Studio C++ build tools or `Ninja` are installed
+  - `cmake` can find a working C/C++ compiler
+  - the native wrapper repository and its upstream dependencies are reachable
+- After updating to a version with the latest bootstrap script, the build should stop at the real `cmake configure` failure instead of only showing the trailing `NMAKE` error.
+
+### 9.4 `RtUtils` FIFO scheduling warning
 
 - This is usually a real-time scheduling optimization warning, not a fatal error.
 

@@ -8,6 +8,62 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Invoke-NativeCommand {
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Command,
+        [Parameter(Mandatory = $true)][string]$FailureMessage
+    )
+
+    & $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw $FailureMessage
+    }
+}
+
+function Get-CMakeGeneratorArgs {
+    param([string]$RidArch)
+
+    if (Get-Command ninja -ErrorAction SilentlyContinue) {
+        return @("-G", "Ninja")
+    }
+
+    $vswherePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+    if (-not (Test-Path $vswherePath)) {
+        return @()
+    }
+
+    $installationVersion = & $vswherePath `
+        -latest `
+        -products * `
+        -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+        -property installationVersion
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($installationVersion)) {
+        return @()
+    }
+
+    $generator = switch (($installationVersion.Trim() -split '\.')[0]) {
+        "17" { "Visual Studio 17 2022" }
+        "16" { "Visual Studio 16 2019" }
+        default { "" }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($generator)) {
+        return @()
+    }
+
+    $platform = switch ($RidArch) {
+        "x64" { "x64" }
+        "arm64" { "ARM64" }
+        default { "" }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($platform)) {
+        return @("-G", $generator)
+    }
+
+    return @("-G", $generator, "-A", $platform)
+}
+
 function Get-DerivedRepoUrl {
     param([string]$RemoteUrl)
 
@@ -132,15 +188,36 @@ if ($ForceRebuild -eq "true") {
 }
 
 if (-not (Test-Path $stampFile)) {
+    if (-not (Test-Path (Join-Path $sourceDir "CMakeLists.txt"))) {
+        throw "Native repository does not contain CMakeLists.txt: $sourceDir"
+    }
+
+    $cmakeGeneratorArgs = Get-CMakeGeneratorArgs -RidArch $ridArch
+    if ($cmakeGeneratorArgs.Count -gt 0) {
+        Write-Host "[bootstrap-native] Using CMake generator: $($cmakeGeneratorArgs -join ' ')"
+    }
+    else {
+        Write-Host "[bootstrap-native] Using CMake default generator. If configure fails on Windows, install Ninja or Visual Studio C++ build tools."
+    }
+
+    $configureArgs = @()
+    $configureArgs += $cmakeGeneratorArgs
+    $configureArgs += @(
+        "-S", $sourceDir,
+        "-B", $buildDir,
+        "-DELITE_AUTO_FETCH_SDK=ON",
+        "-DELITE_BUILD_EXAMPLES=OFF"
+    )
+
     Write-Host "[bootstrap-native] Configuring native library for $rid..."
-    cmake `
-        -S $sourceDir `
-        -B $buildDir `
-        -DELITE_AUTO_FETCH_SDK=ON `
-        -DELITE_BUILD_EXAMPLES=OFF
+    Invoke-NativeCommand `
+        -Command { cmake @configureArgs } `
+        -FailureMessage "[bootstrap-native] CMake configure failed. Verify that CMake, Ninja or Visual Studio C++ build tools, and network access to the native dependencies are available."
 
     Write-Host "[bootstrap-native] Building native library for $rid..."
-    cmake --build $buildDir --config Release
+    Invoke-NativeCommand `
+        -Command { cmake --build $buildDir --config Release } `
+        -FailureMessage "[bootstrap-native] CMake build failed. Review the configure output above for the actual compiler or dependency error."
 
     Get-ChildItem -Path $cacheDir -File -ErrorAction SilentlyContinue | Remove-Item -Force
     Get-ChildItem -Path $buildDir -Recurse -File -Filter *.dll | ForEach-Object {

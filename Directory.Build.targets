@@ -5,6 +5,8 @@
     <EliteNativeRepoRef Condition="'$(EliteNativeRepoRef)' == ''">main</EliteNativeRepoRef>
     <EliteForceNativeRebuild Condition="'$(EliteForceNativeRebuild)' == ''">false</EliteForceNativeRebuild>
     <EliteProjectOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutputPath)'))</EliteProjectOutputDir>
+    <EliteRepoRootForPowershell>$([System.String]::Copy('$(MSBuildThisFileDirectory)').TrimEnd('\'))</EliteRepoRootForPowershell>
+    <EliteProjectOutputDirForPowershell>$([System.String]::Copy('$(EliteProjectOutputDir)').TrimEnd('\'))</EliteProjectOutputDirForPowershell>
   </PropertyGroup>
 
   <Target
@@ -22,6 +24,6 @@
     Condition="'$(EliteAutoBootstrapNative)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OS)' == 'Windows_NT'">
     <MakeDir Directories="$(EliteProjectOutputDir)" />
     <Exec
-      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.ps1&quot; -RepoRoot &quot;$(MSBuildThisFileDirectory)&quot; -ProjectOutputDir &quot;$(EliteProjectOutputDir)&quot; -RepoUrl &quot;$(EliteNativeRepoUrl)&quot; -RepoRef &quot;$(EliteNativeRepoRef)&quot; -ForceRebuild:$([System.String]::Copy('$(EliteForceNativeRebuild)').ToLowerInvariant())" />
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.ps1&quot; -RepoRoot &quot;$(EliteRepoRootForPowershell)&quot; -ProjectOutputDir &quot;$(EliteProjectOutputDirForPowershell)&quot; -RepoUrl &quot;$(EliteNativeRepoUrl)&quot; -RepoRef &quot;$(EliteNativeRepoRef)&quot; -ForceRebuild:$([System.String]::Copy('$(EliteForceNativeRebuild)').ToLowerInvariant())" />
   </Target>
 </Project>

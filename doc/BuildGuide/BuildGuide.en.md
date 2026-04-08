@@ -81,6 +81,22 @@ Property meanings:
 
 If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
 
+On Windows, if the upstream C++ SDK resolves dependencies through `vcpkg`, set the toolchain environment before building:
+
+```powershell
+$env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
+$env:CMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
+$env:VCPKG_TARGET_TRIPLET="x64-windows"
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+If you use preinstalled dependency prefixes instead of `vcpkg`, pass them through `CMAKE_PREFIX_PATH`:
+
+```powershell
+$env:CMAKE_PREFIX_PATH="C:\path\to\your\deps"
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
 ---
 
 ## 4. Run Examples
@@ -285,7 +301,16 @@ Recipe file locations:
   - the native wrapper repository and its upstream dependencies are reachable
 - After updating to a version with the latest bootstrap script, the build should stop at the real `cmake configure` failure instead of only showing the trailing `NMAKE` error.
 
-### 9.4 `RtUtils` FIFO scheduling warning
+### 9.4 Windows reports `Could NOT find Boost`
+
+- This usually means the upstream C++ SDK dependencies were not exposed to `cmake` through `vcpkg` or another prefix path.
+- If Boost was installed via `vcpkg`, set:
+  - `VCPKG_ROOT`
+  - `CMAKE_TOOLCHAIN_FILE`
+  - and, when needed, `VCPKG_TARGET_TRIPLET`
+- If dependencies live in a custom install prefix, set `CMAKE_PREFIX_PATH` instead.
+
+### 9.5 `RtUtils` FIFO scheduling warning
 
 - This is usually a real-time scheduling optimization warning, not a fatal error.
 

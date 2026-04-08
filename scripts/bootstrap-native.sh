@@ -6,6 +6,10 @@ project_output_dir="${2:?project output dir is required}"
 repo_url="${3:-}"
 repo_ref="${4:-main}"
 force_rebuild="${5:-false}"
+toolchain_file="${CMAKE_TOOLCHAIN_FILE:-}"
+vcpkg_root="${VCPKG_ROOT:-}"
+vcpkg_triplet="${VCPKG_TARGET_TRIPLET:-}"
+cmake_prefix_path="${CMAKE_PREFIX_PATH:-}"
 
 default_github_repo="https://github.com/747309172a-cpu/Elite_Robots_CS_SDK_C.git"
 default_gitee_repo="https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git"
@@ -142,15 +146,46 @@ if [[ "${force_rebuild}" == "true" ]]; then
 fi
 
 if [[ ! -f "${stamp_file}" ]]; then
-    echo "[bootstrap-native] Configuring native library for ${rid}..."
-    cmake \
-        -S "${source_dir}" \
-        -B "${build_dir}" \
-        -DELITE_AUTO_FETCH_SDK=ON \
-        -DELITE_BUILD_EXAMPLES=OFF \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_BUILD_RPATH="\$ORIGIN" \
+    if [[ -z "${toolchain_file}" && -n "${vcpkg_root}" ]]; then
+        candidate_toolchain_file="${vcpkg_root}/scripts/buildsystems/vcpkg.cmake"
+        if [[ -f "${candidate_toolchain_file}" ]]; then
+            toolchain_file="${candidate_toolchain_file}"
+        fi
+    fi
+
+    if [[ -n "${toolchain_file}" ]]; then
+        if [[ ! -f "${toolchain_file}" ]]; then
+            echo "CMAKE_TOOLCHAIN_FILE does not exist: ${toolchain_file}" >&2
+            exit 1
+        fi
+        echo "[bootstrap-native] Using CMake toolchain file: ${toolchain_file}"
+    fi
+
+    configure_args=(
+        -S "${source_dir}"
+        -B "${build_dir}"
+        -DELITE_AUTO_FETCH_SDK=ON
+        -DELITE_BUILD_EXAMPLES=OFF
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_RPATH="\$ORIGIN"
         -DCMAKE_INSTALL_RPATH="\$ORIGIN"
+    )
+
+    if [[ -n "${toolchain_file}" ]]; then
+        configure_args+=("-DCMAKE_TOOLCHAIN_FILE:FILEPATH=${toolchain_file}")
+    fi
+    if [[ -n "${vcpkg_root}" ]]; then
+        configure_args+=("-DVCPKG_ROOT:PATH=${vcpkg_root}")
+    fi
+    if [[ -n "${vcpkg_triplet}" ]]; then
+        configure_args+=("-DVCPKG_TARGET_TRIPLET:STRING=${vcpkg_triplet}")
+    fi
+    if [[ -n "${cmake_prefix_path}" ]]; then
+        configure_args+=("-DCMAKE_PREFIX_PATH:PATH=${cmake_prefix_path}")
+    fi
+
+    echo "[bootstrap-native] Configuring native library for ${rid}..."
+    cmake "${configure_args[@]}"
 
     echo "[bootstrap-native] Building native library for ${rid}..."
     cmake --build "${build_dir}" --config Release --parallel

@@ -75,6 +75,22 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 
 如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
 
+Windows 下如果上游 C++ SDK 通过 `vcpkg` 提供依赖，构建前还需要设置工具链环境变量，例如：
+
+```powershell
+$env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
+$env:CMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
+$env:VCPKG_TARGET_TRIPLET="x64-windows"
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+如果使用的是已安装好的第三方库目录，也可以通过 `CMAKE_PREFIX_PATH` 传给 bootstrap：
+
+```powershell
+$env:CMAKE_PREFIX_PATH="C:\path\to\your\deps"
+dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
 ---
 
 ## 4. 如何运行示例
@@ -270,6 +286,15 @@ dotnet run
 ### 9.4 `RtUtils` FIFO 调度警告
 
 - 这是实时调度优化提示，通常不是致命错误，可忽略。
+
+### 9.5 Windows 下报 `Could NOT find Boost`
+
+- 这通常表示上游 C++ SDK 的依赖没有通过 `vcpkg` 或其他前缀路径传给 `cmake`。
+- 如果你已经通过 `vcpkg` 安装了 `boost`，请显式设置：
+  - `VCPKG_ROOT`
+  - `CMAKE_TOOLCHAIN_FILE`
+  - 需要时再设置 `VCPKG_TARGET_TRIPLET`
+- 如果不是 `vcpkg` 安装的依赖，可以改为设置 `CMAKE_PREFIX_PATH`。
 
 ---
 

@@ -80,6 +80,24 @@ function Get-CMakeGeneratorArgs {
     return @()
 }
 
+function Add-CMakeCacheArgIfPresent {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [string]$Name,
+        [string]$Value,
+        [string]$Type = "STRING"
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return
+    }
+
+    $trimmedValue = $Value.Trim()
+    if (-not [string]::IsNullOrWhiteSpace($trimmedValue)) {
+        $List.Add("-D${Name}:${Type}=${trimmedValue}")
+    }
+}
+
 function Get-DerivedRepoUrl {
     param([string]$RemoteUrl)
 
@@ -216,19 +234,42 @@ if (-not (Test-Path $stampFile)) {
         Write-Host "[bootstrap-native] Using CMake default generator. If configure fails on Windows, install Ninja or Visual Studio C++ build tools."
     }
 
-    $configureArgs = @()
-    $configureArgs += $cmakeGeneratorArgs
-    $configureArgs += @(
+    $toolchainFile = $env:CMAKE_TOOLCHAIN_FILE
+    if ([string]::IsNullOrWhiteSpace($toolchainFile) -and -not [string]::IsNullOrWhiteSpace($env:VCPKG_ROOT)) {
+        $candidateToolchainFile = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
+        if (Test-Path $candidateToolchainFile) {
+            $toolchainFile = $candidateToolchainFile
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($toolchainFile)) {
+        if (-not (Test-Path $toolchainFile)) {
+            throw "CMAKE_TOOLCHAIN_FILE does not exist: $toolchainFile"
+        }
+        Write-Host "[bootstrap-native] Using CMake toolchain file: $toolchainFile"
+    }
+
+    $configureArgs = [System.Collections.Generic.List[string]]::new()
+    foreach ($arg in $cmakeGeneratorArgs) {
+        $configureArgs.Add($arg)
+    }
+    foreach ($arg in @(
         "-S", $sourceDir,
         "-B", $buildDir,
         "-DELITE_AUTO_FETCH_SDK=ON",
         "-DELITE_BUILD_EXAMPLES=OFF"
-    )
+    )) {
+        $configureArgs.Add($arg)
+    }
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "CMAKE_TOOLCHAIN_FILE" -Value $toolchainFile -Type "FILEPATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_ROOT" -Value $env:VCPKG_ROOT -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_TARGET_TRIPLET" -Value $env:VCPKG_TARGET_TRIPLET
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "CMAKE_PREFIX_PATH" -Value $env:CMAKE_PREFIX_PATH -Type "PATH"
 
     Write-Host "[bootstrap-native] Configuring native library for $rid..."
     Invoke-NativeCommand `
         -Command { cmake @configureArgs } `
-        -FailureMessage "[bootstrap-native] CMake configure failed. Verify that CMake, Ninja or Visual Studio C++ build tools, and network access to the native dependencies are available."
+        -FailureMessage "[bootstrap-native] CMake configure failed. Verify that CMake, Ninja or Visual Studio C++ build tools, toolchain settings, and network access to the native dependencies are available."
 
     Write-Host "[bootstrap-native] Building native library for $rid..."
     Invoke-NativeCommand `

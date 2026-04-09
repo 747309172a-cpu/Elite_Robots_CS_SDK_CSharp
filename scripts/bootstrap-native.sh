@@ -6,6 +6,7 @@ project_output_dir="${2:?project output dir is required}"
 repo_url="${3:-}"
 repo_ref="${4:-main}"
 force_rebuild="${5:-false}"
+link_upstream_static="${6:-false}"
 toolchain_file="${CMAKE_TOOLCHAIN_FILE:-}"
 vcpkg_root="${VCPKG_ROOT:-}"
 vcpkg_triplet="${VCPKG_TARGET_TRIPLET:-}"
@@ -166,6 +167,7 @@ if [[ ! -f "${stamp_file}" ]]; then
         -B "${build_dir}"
         -DELITE_AUTO_FETCH_SDK=ON
         -DELITE_BUILD_EXAMPLES=OFF
+        -DELITE_LINK_UPSTREAM_STATIC="${link_upstream_static}"
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_BUILD_RPATH="\$ORIGIN"
         -DCMAKE_INSTALL_RPATH="\$ORIGIN"

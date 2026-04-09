@@ -4,6 +4,8 @@
     <EliteNativeRepoUrl Condition="'$(EliteNativeRepoUrl)' == ''">https://gitee.com/elibot_dukang/Elite_Robots_CS_SDK_C.git</EliteNativeRepoUrl>
     <EliteNativeRepoRef Condition="'$(EliteNativeRepoRef)' == ''">main</EliteNativeRepoRef>
     <EliteForceNativeRebuild Condition="'$(EliteForceNativeRebuild)' == ''">false</EliteForceNativeRebuild>
+    <EliteLinkUpstreamStatic Condition="'$(EliteLinkUpstreamStatic)' == '' and '$(OS)' == 'Windows_NT'">true</EliteLinkUpstreamStatic>
+    <EliteLinkUpstreamStatic Condition="'$(EliteLinkUpstreamStatic)' == '' and '$(OS)' != 'Windows_NT'">false</EliteLinkUpstreamStatic>
     <EliteProjectOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)/$(OutputPath)'))</EliteProjectOutputDir>
     <EliteRepoRootForPowershell>$([System.String]::Copy('$(MSBuildThisFileDirectory)').TrimEnd('\'))</EliteRepoRootForPowershell>
     <EliteProjectOutputDirForPowershell>$([System.String]::Copy('$(EliteProjectOutputDir)').TrimEnd('\'))</EliteProjectOutputDirForPowershell>
@@ -15,7 +17,7 @@
     Condition="'$(EliteAutoBootstrapNative)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OS)' != 'Windows_NT'">
     <MakeDir Directories="$(EliteProjectOutputDir)" />
     <Exec
-      Command="bash &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.sh&quot; &quot;$(MSBuildThisFileDirectory)&quot; &quot;$(EliteProjectOutputDir)&quot; &quot;$(EliteNativeRepoUrl)&quot; &quot;$(EliteNativeRepoRef)&quot; &quot;$(EliteForceNativeRebuild)&quot;" />
+      Command="bash &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.sh&quot; &quot;$(MSBuildThisFileDirectory)&quot; &quot;$(EliteProjectOutputDir)&quot; &quot;$(EliteNativeRepoUrl)&quot; &quot;$(EliteNativeRepoRef)&quot; &quot;$(EliteForceNativeRebuild)&quot; &quot;$(EliteLinkUpstreamStatic)&quot;" />
   </Target>
 
   <Target
@@ -24,6 +26,6 @@
     Condition="'$(EliteAutoBootstrapNative)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(OS)' == 'Windows_NT'">
     <MakeDir Directories="$(EliteProjectOutputDir)" />
     <Exec
-      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.ps1&quot; -RepoRoot &quot;$(EliteRepoRootForPowershell)&quot; -ProjectOutputDir &quot;$(EliteProjectOutputDirForPowershell)&quot; -RepoUrl &quot;$(EliteNativeRepoUrl)&quot; -RepoRef &quot;$(EliteNativeRepoRef)&quot; -ForceRebuild:$([System.String]::Copy('$(EliteForceNativeRebuild)').ToLowerInvariant())" />
+      Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts/bootstrap-native.ps1&quot; -RepoRoot &quot;$(EliteRepoRootForPowershell)&quot; -ProjectOutputDir &quot;$(EliteProjectOutputDirForPowershell)&quot; -RepoUrl &quot;$(EliteNativeRepoUrl)&quot; -RepoRef &quot;$(EliteNativeRepoRef)&quot; -ForceRebuild:$([System.String]::Copy('$(EliteForceNativeRebuild)').ToLowerInvariant()) -LinkUpstreamStatic:$([System.String]::Copy('$(EliteLinkUpstreamStatic)').ToLowerInvariant())" />
   </Target>
 </Project>

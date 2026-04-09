@@ -13,7 +13,7 @@ C# call chain:
 
 ---
 
-## 2. Prerequisites
+## 2. Build Requirements
 
 - .NET SDK 8.0+
 - `git`
@@ -25,33 +25,93 @@ By default, this repository bootstraps the native wrapper automatically during `
 The build downloads the separate native C wrapper repository, builds `elite_cs_series_sdk_c`, and copies the resulting native binaries into the current .NET output directory.
 If `EliteNativeRepoUrl` is not set explicitly, the build tries to derive it from the current `origin` remote.
 
+### 2.1 Windows (Visual Studio)
+
+- Baseline dependency installation
+
+On Windows, it is recommended to install the upstream C++ SDK dependencies through `vcpkg` first.
+
+Download and bootstrap `vcpkg`. Use a dedicated directory because the same path will be needed later during the build:
+
+```powershell
+git clone https://github.com/microsoft/vcpkg.git
+.\bootstrap-vcpkg.bat
+```
+
+Install the baseline dependencies:
+
+```powershell
+.\vcpkg install boost
+.\vcpkg install libssh
+.\vcpkg integrate install
+```
+
+After that, keep the `vcpkg` path available because you will use it as `VCPKG_ROOT` during the build.
+
+### 2.2 Ubuntu
+
+Baseline dependency installation:
+
+```bash
+sudo apt update
+
+sudo apt install libboost-all-dev
+
+sudo apt install libssh-dev # optional, recommended, recommended version: 0.9.6
+
+# sudo apt install sshpass # required if libssh-dev is not installed
+```
+
 ---
 
 ## 3. Build Steps
 
-Run the following from the repository root.
+### 3.1 Windows Build
 
-### 3.1 Build C# projects
+On Windows, open the Visual Studio terminal first, then run the following commands.
 
-Build the C# wrapper:
+On Windows, the default build tries to link the C wrapper against the upstream C++ SDK static library so that fewer extra DLLs need to be distributed with the final package. Using a static `vcpkg` triplet is recommended.
 
-```bash
+Set `VCPKG_ROOT` to your own `vcpkg` installation path, and make sure `boost`, `libssh`, and other required dependencies have already been installed through `vcpkg`:
+
+```bat
+cd <clone of this repository>
+
+set VCPKG_ROOT="C:\Users\<user>\vcpkg"
+set VCPKG_TARGET_TRIPLET=x64-windows-static
+```
+
+If this is the first build, run:
+
+```bat
 dotnet build src/elite_cs_sdk.csproj
+```
+
+If the project has already been built before and you need to force a native rebuild, run:
+
+```bat
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
 
 Build the example project:
 
-```bash
+```bat
 dotnet build example/example.csproj
 ```
 
-Create NuGet package (optional, for external projects):
+Create a NuGet package (optional, for external projects):
 
-```bash
+```bat
 dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
 ```
 
-The `dotnet build` and `dotnet pack` commands are the same on Linux and Windows.
+### 3.2 Ubuntu Build
+
+```bash
+cd <clone of this repository>
+
+dotnet build src/elite_cs_sdk.csproj
+```
 
 The first build may take longer because it may:
 
@@ -60,7 +120,19 @@ The first build may take longer because it may:
 - Cache native runtime files under `.native-out/`
 - Copy the runtime files into the current `bin/` output directory
 
-### 3.2 Optional build properties
+Build the example project (optional):
+
+```bash
+dotnet build example/example.csproj
+```
+
+Create a NuGet package (optional, for external projects):
+
+```bash
+dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
+```
+
+### 3.3 Optional build properties
 
 You can override the bootstrap behavior with MSBuild properties:
 
@@ -78,15 +150,9 @@ Property meanings:
 - `EliteNativeRepoUrl`: native wrapper repository URL
 - `EliteNativeRepoRef`: git branch/tag/commit used for the native wrapper
 - `EliteForceNativeRebuild`: ignore cached native output and rebuild
+- `EliteLinkUpstreamStatic`: whether the C wrapper links against the upstream C++ SDK static library; default is `true` on Windows and `false` on Linux
 
 If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
-
-On Windows, if the upstream C++ SDK resolves dependencies through `vcpkg`, you usually only need to set `VCPKG_ROOT`:
-
-```powershell
-$env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
-dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
-```
 
 The bootstrap script will derive these automatically from `VCPKG_ROOT`:
 
@@ -100,6 +166,13 @@ If you use preinstalled dependency prefixes instead of `vcpkg`, pass them throug
 ```powershell
 $env:CMAKE_PREFIX_PATH="C:\path\to\your\deps"
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+If you need to override the default behavior explicitly, you can also run:
+
+```bash
+dotnet build src/elite_cs_sdk.csproj /p:EliteLinkUpstreamStatic=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteLinkUpstreamStatic=false
 ```
 
 ---

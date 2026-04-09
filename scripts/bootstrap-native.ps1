@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$ProjectOutputDir,
     [string]$RepoUrl = "",
     [string]$RepoRef = "main",
-    [string]$ForceRebuild = "false"
+    [string]$ForceRebuild = "false",
+    [string]$LinkUpstreamStatic = "false"
 )
 
 $ErrorActionPreference = "Stop"
@@ -315,7 +316,8 @@ if (-not (Test-Path $stampFile)) {
         "-S", $sourceDir,
         "-B", $buildDir,
         "-DELITE_AUTO_FETCH_SDK=ON",
-        "-DELITE_BUILD_EXAMPLES=OFF"
+        "-DELITE_BUILD_EXAMPLES=OFF",
+        "-DELITE_LINK_UPSTREAM_STATIC=$($LinkUpstreamStatic.ToLowerInvariant())"
     )) {
         $configureArgs.Add($arg)
     }

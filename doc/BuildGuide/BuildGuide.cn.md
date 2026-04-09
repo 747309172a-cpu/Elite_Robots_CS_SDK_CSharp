@@ -5,7 +5,7 @@
 仓库目录包含：
 
 - `src`：C# 封装库（基于 `P/Invoke` 与 `SafeHandle`）
-- `example`：可直接运行的 C# 示例程序
+- `example`： C# 示例程序
 
 C# 调用链：
 
@@ -13,7 +13,7 @@ C# 调用链：
 
 ---
 
-## 2. 构建前提
+## 2. 构建要求
 
 - .NET SDK 8.0+
 - `git`
@@ -24,27 +24,92 @@ C# 调用链：
 默认情况下，本仓库会在 `dotnet build` 或 `dotnet run` 时自动准备原生依赖。
 构建流程会拉取独立的 native C 封装仓库、编译 `elite_cs_series_sdk_c`，并把生成的原生库复制到当前 .NET 输出目录。
 如果没有显式设置 `EliteNativeRepoUrl`，构建会尝试根据当前仓库的 `origin` 地址自动推导。
-  
+
+### 2.1 Windows（Visual Studio）
+
+-基础依赖安装
+
+Windows 下需要使用 `vcpkg` 安装上游 C++ SDK 所需的基础依赖。
+
+首先下载并初始化 `vcpkg`。建议单独创建一个目录保存 `vcpkg`，这个路径后续构建时会用到：
+
+```powershell
+git clone https://github.com/microsoft/vcpkg.git
+.\bootstrap-vcpkg.bat
+```
+
+安装基础依赖：
+
+```powershell
+.\vcpkg install boost
+.\vcpkg install libssh
+.\vcpkg integrate install
+```
+
+完成后记住 `vcpkg` 所在目录，后续构建时需要设置 `VCPKG_ROOT`。
+
+### 2.2 Ubuntu
+
+基础依赖安装：
+
+```bash
+sudo apt update
+
+sudo apt install libboost-all-dev
+
+sudo apt install libssh-dev # 可选，建议安装，建议版本为0.9.6
+
+# sudo apt install sshpass # 如果没安装 libssh-dev 则需要安装此指令
+```
+
 ---
 
 ## 3. 构建步骤
 
-### 3.1 编译 C# 项目
+### 3.1 Windows编译
 
-编译c#端wrapper接口
-Windows 和 Linux 中下述编译命令相同。
-```bash
+Windows 上请先打开 Visual Studio 的终端，再执行以下命令。
+
+Windows 默认会尝试让 C 封装层链接上游 C++ SDK 的静态库，以减少最终交付时额外分发的 DLL 数量。建议使用 `vcpkg` 的静态 triplet。
+
+首先设置 `VCPKG_ROOT`，替换为你自己的 `vcpkg` 安装目录，并确保 `vcpkg` 中已安装 `boost`、`libssh` 等构建所需依赖：
+
+```bat
+cd <clone of this repository>
+
+set VCPKG_ROOT="C:\Users\<user>\vcpkg"
+set VCPKG_TARGET_TRIPLET=x64-windows-static
+```
+
+如果是第一次构建，执行：
+
+```bat
 dotnet build src/elite_cs_sdk.csproj
 ```
 
-编译example
-```bash
+如果之前已经构建过，需要强制重新编译 native 依赖时，执行：
+
+```bat
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+编译 example(可选)：
+
+```bat
 dotnet build example/example.csproj
 ```
 
-生成NuGet包(非必须，生成可供外部项目调用包)
-```bash
+生成 NuGet 包（非必须，生成可供外部项目调用包）：
+
+```bat
 dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
+```
+
+### 3.2 Ubuntu编译
+
+```bash
+cd <clone of this repository>
+
+dotnet build src/elite_cs_sdk.csproj
 ```
 
 首次构建时间可能会更长，因为会自动执行以下步骤：
@@ -54,7 +119,19 @@ dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
 - 将可复用的原生产物缓存到 `.native-out/`
 - 把运行所需的原生库复制到当前 `bin/` 输出目录
 
-### 3.2 可选构建参数
+编译 example(可选)：
+
+```bash
+dotnet build example/example.csproj
+```
+
+生成 NuGet 包（非必须，生成可供外部项目调用包）：
+
+```bash
+dotnet pack src/elite_cs_sdk.csproj -c Release -o ./nupkg
+```
+
+### 3.3 可选构建参数
 
 可以通过 MSBuild 属性覆盖默认 bootstrap 行为：
 
@@ -72,15 +149,9 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 - `EliteNativeRepoUrl`：native 封装仓库地址
 - `EliteNativeRepoRef`：native 封装仓库使用的分支、tag 或 commit
 - `EliteForceNativeRebuild`：忽略本地缓存并强制重新编译
+- `EliteLinkUpstreamStatic`：是否让 C 封装层链接上游 C++ SDK 的静态库；Windows 默认 `true`，Linux 默认 `false`
 
 如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
-
-Windows 下如果上游 C++ SDK 通过 `vcpkg` 提供依赖，通常只需要先设置 `VCPKG_ROOT`：
-
-```powershell
-$env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
-dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
-```
 
 bootstrap 脚本会自动根据 `VCPKG_ROOT` 推导：
 
@@ -94,6 +165,13 @@ bootstrap 脚本会自动根据 `VCPKG_ROOT` 推导：
 ```powershell
 $env:CMAKE_PREFIX_PATH="C:\path\to\your\deps"
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+```
+
+如果你需要手动覆盖默认行为，也可以显式指定：
+
+```bash
+dotnet build src/elite_cs_sdk.csproj /p:EliteLinkUpstreamStatic=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteLinkUpstreamStatic=false
 ```
 
 ---

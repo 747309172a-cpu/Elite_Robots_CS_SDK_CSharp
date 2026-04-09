@@ -98,6 +98,30 @@ function Add-CMakeCacheArgIfPresent {
     }
 }
 
+function Prepend-EnvPathIfPresent {
+    param(
+        [Parameter(Mandatory = $true)][string]$EnvName,
+        [string]$PathValue
+    )
+
+    if ([string]::IsNullOrWhiteSpace($PathValue) -or -not (Test-Path $PathValue)) {
+        return
+    }
+
+    $currentValue = [System.Environment]::GetEnvironmentVariable($EnvName, "Process")
+    if ([string]::IsNullOrWhiteSpace($currentValue)) {
+        [System.Environment]::SetEnvironmentVariable($EnvName, $PathValue, "Process")
+        return
+    }
+
+    $entries = $currentValue -split ';'
+    if ($entries -contains $PathValue) {
+        return
+    }
+
+    [System.Environment]::SetEnvironmentVariable($EnvName, "$PathValue;$currentValue", "Process")
+}
+
 function Get-DerivedRepoUrl {
     param([string]$RemoteUrl)
 
@@ -234,11 +258,42 @@ if (-not (Test-Path $stampFile)) {
         Write-Host "[bootstrap-native] Using CMake default generator. If configure fails on Windows, install Ninja or Visual Studio C++ build tools."
     }
 
+    $vcpkgRoot = $env:VCPKG_ROOT
     $toolchainFile = $env:CMAKE_TOOLCHAIN_FILE
-    if ([string]::IsNullOrWhiteSpace($toolchainFile) -and -not [string]::IsNullOrWhiteSpace($env:VCPKG_ROOT)) {
-        $candidateToolchainFile = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
+    if ([string]::IsNullOrWhiteSpace($toolchainFile) -and -not [string]::IsNullOrWhiteSpace($vcpkgRoot)) {
+        $candidateToolchainFile = Join-Path $vcpkgRoot "scripts\buildsystems\vcpkg.cmake"
         if (Test-Path $candidateToolchainFile) {
             $toolchainFile = $candidateToolchainFile
+        }
+    }
+
+    $vcpkgTriplet = $env:VCPKG_TARGET_TRIPLET
+    if ([string]::IsNullOrWhiteSpace($vcpkgTriplet) -and -not [string]::IsNullOrWhiteSpace($vcpkgRoot)) {
+        $vcpkgTriplet = switch ($ridArch) {
+            "x64" { "x64-windows" }
+            "arm64" { "arm64-windows" }
+            default { "" }
+        }
+        if (-not [string]::IsNullOrWhiteSpace($vcpkgTriplet)) {
+            [System.Environment]::SetEnvironmentVariable("VCPKG_TARGET_TRIPLET", $vcpkgTriplet, "Process")
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($vcpkgRoot) -and -not [string]::IsNullOrWhiteSpace($vcpkgTriplet)) {
+        $vcpkgInstalledDir = Join-Path $vcpkgRoot "installed\$vcpkgTriplet"
+        $vcpkgIncludeDir = Join-Path $vcpkgInstalledDir "include"
+        if (Test-Path $vcpkgIncludeDir) {
+            Prepend-EnvPathIfPresent -EnvName "INCLUDE" -PathValue $vcpkgIncludeDir
+            if ([string]::IsNullOrWhiteSpace($env:BOOST_ROOT)) {
+                [System.Environment]::SetEnvironmentVariable("BOOST_ROOT", $vcpkgInstalledDir, "Process")
+            }
+            if ([string]::IsNullOrWhiteSpace($env:Boost_ROOT)) {
+                [System.Environment]::SetEnvironmentVariable("Boost_ROOT", $vcpkgInstalledDir, "Process")
+            }
+            if ([string]::IsNullOrWhiteSpace($env:Boost_INCLUDE_DIR)) {
+                [System.Environment]::SetEnvironmentVariable("Boost_INCLUDE_DIR", $vcpkgIncludeDir, "Process")
+            }
+            Write-Host "[bootstrap-native] Using vcpkg include directory: $vcpkgIncludeDir"
         }
     }
 
@@ -247,6 +302,9 @@ if (-not (Test-Path $stampFile)) {
             throw "CMAKE_TOOLCHAIN_FILE does not exist: $toolchainFile"
         }
         Write-Host "[bootstrap-native] Using CMake toolchain file: $toolchainFile"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($vcpkgTriplet)) {
+        Write-Host "[bootstrap-native] Using vcpkg triplet: $vcpkgTriplet"
     }
 
     $configureArgs = [System.Collections.Generic.List[string]]::new()
@@ -262,9 +320,12 @@ if (-not (Test-Path $stampFile)) {
         $configureArgs.Add($arg)
     }
     Add-CMakeCacheArgIfPresent -List $configureArgs -Name "CMAKE_TOOLCHAIN_FILE" -Value $toolchainFile -Type "FILEPATH"
-    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_ROOT" -Value $env:VCPKG_ROOT -Type "PATH"
-    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_TARGET_TRIPLET" -Value $env:VCPKG_TARGET_TRIPLET
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_ROOT" -Value $vcpkgRoot -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "VCPKG_TARGET_TRIPLET" -Value $vcpkgTriplet
     Add-CMakeCacheArgIfPresent -List $configureArgs -Name "CMAKE_PREFIX_PATH" -Value $env:CMAKE_PREFIX_PATH -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "BOOST_ROOT" -Value $env:BOOST_ROOT -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "Boost_ROOT" -Value $env:Boost_ROOT -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "Boost_INCLUDE_DIR" -Value $env:Boost_INCLUDE_DIR -Type "PATH"
 
     Write-Host "[bootstrap-native] Configuring native library for $rid..."
     Invoke-NativeCommand `

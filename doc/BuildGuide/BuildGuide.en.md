@@ -81,14 +81,19 @@ Property meanings:
 
 If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
 
-On Windows, if the upstream C++ SDK resolves dependencies through `vcpkg`, set the toolchain environment before building:
+On Windows, if the upstream C++ SDK resolves dependencies through `vcpkg`, you usually only need to set `VCPKG_ROOT`:
 
 ```powershell
 $env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
-$env:CMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
-$env:VCPKG_TARGET_TRIPLET="x64-windows"
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
+
+The bootstrap script will derive these automatically from `VCPKG_ROOT`:
+
+- `CMAKE_TOOLCHAIN_FILE`
+- `VCPKG_TARGET_TRIPLET`
+- the MSVC `INCLUDE` path needed on Windows
+- `BOOST_ROOT` / `Boost_INCLUDE_DIR`
 
 If you use preinstalled dependency prefixes instead of `vcpkg`, pass them through `CMAKE_PREFIX_PATH`:
 

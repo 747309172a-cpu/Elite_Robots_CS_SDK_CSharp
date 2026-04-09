@@ -75,14 +75,19 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 
 如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
 
-Windows 下如果上游 C++ SDK 通过 `vcpkg` 提供依赖，构建前还需要设置工具链环境变量，例如：
+Windows 下如果上游 C++ SDK 通过 `vcpkg` 提供依赖，通常只需要先设置 `VCPKG_ROOT`：
 
 ```powershell
 $env:VCPKG_ROOT="C:\Users\<user>\vcpkg"
-$env:CMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
-$env:VCPKG_TARGET_TRIPLET="x64-windows"
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
+
+bootstrap 脚本会自动根据 `VCPKG_ROOT` 推导：
+
+- `CMAKE_TOOLCHAIN_FILE`
+- `VCPKG_TARGET_TRIPLET`
+- Windows 下 MSVC 所需的 `INCLUDE`
+- `BOOST_ROOT` / `Boost_INCLUDE_DIR`
 
 如果使用的是已安装好的第三方库目录，也可以通过 `CMAKE_PREFIX_PATH` 传给 bootstrap：
 

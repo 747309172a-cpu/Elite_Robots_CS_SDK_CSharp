@@ -78,7 +78,6 @@ Windows 默认会尝试让 C 封装层链接上游 C++ SDK 的静态库，以减
 cd <clone of this repository>
 
 set VCPKG_ROOT="C:\Users\<user>\vcpkg"
-set VCPKG_TARGET_TRIPLET=x64-windows-static
 ```
 
 如果是第一次构建，执行：

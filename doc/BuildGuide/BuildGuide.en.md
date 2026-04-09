@@ -78,7 +78,6 @@ Set `VCPKG_ROOT` to your own `vcpkg` installation path, and make sure `boost`, `
 cd <clone of this repository>
 
 set VCPKG_ROOT="C:\Users\<user>\vcpkg"
-set VCPKG_TARGET_TRIPLET=x64-windows-static
 ```
 
 If this is the first build, run:

@@ -2,7 +2,7 @@
 
 ## 1. 概览
 
-仓库目录包含：
+仓库主要目录包含：
 
 - `src`：C# 封装库（基于 `P/Invoke` 与 `SafeHandle`）
 - `example`： C# 示例程序

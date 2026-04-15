@@ -16,5 +16,8 @@ By default, `dotnet build` and `dotnet run` will automatically fetch and build t
 ## Build and Install
 For build/install steps, see: [Build Guide](./doc/BuildGuide/BuildGuide.en.md)
 
+## User Guide
+For runtime usage, examples, FAQ, and external project integration, see: [User Guide](./doc/UserGuide/UserGuide.en.md)
+
 ## API Reference
 [API Reference](./doc/API/en/API.en.md)

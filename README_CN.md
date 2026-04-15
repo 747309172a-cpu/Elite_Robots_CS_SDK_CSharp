@@ -11,7 +11,10 @@
 - git、cmake、C/C++ 编译器
 
 ## 编译与安装
-编译安装的方式参考：[编译安装向导](./doc/BuildGuide/BuildGuide.cn.md)
+编译安装的方式参考：[构建指南](./doc/BuildGuide/BuildGuide.cn.md)
+
+## 使用说明
+运行方式、示例说明、常见问题和外部项目接入请参考：[使用指南](./doc/UserGuide/UserGuide.cn.md)
 
 
 ## API手册

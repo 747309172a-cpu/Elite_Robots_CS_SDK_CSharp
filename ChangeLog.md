@@ -5,6 +5,7 @@
 - Added the `PoseAlgebraBase` C# wrapper with pose matrix/vector conversion, composition, inverse, add/subtract, frame conversion, and distance calculation.
 - Added `kinematics` and `pose_algebra` C# examples.
 - Updated the `trajectory` C# example to match the C++ SDK sample flow, covering trajectory feedback, time-based trajectory, and speed-based trajectory.
+- Added native bootstrap build properties `EliteCompileKinPlugin` and `EliteCompilePoseAlgPlugin` to enable plugin builds when the upstream C++ SDK is built from source.
 - Updated Chinese and English user guides and API documentation for the new interfaces and examples.
 
 ### Initial Release

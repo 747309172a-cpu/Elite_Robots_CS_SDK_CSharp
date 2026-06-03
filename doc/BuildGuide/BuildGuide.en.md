@@ -128,6 +128,7 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<y
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true
 ```
 
 Property meanings:
@@ -137,8 +138,21 @@ Property meanings:
 - `EliteNativeRepoRef`: git branch/tag/commit used for the native wrapper
 - `EliteForceNativeRebuild`: ignore cached native output and rebuild
 - `EliteLinkUpstreamStatic`: whether the C wrapper links against the upstream C++ SDK static library; default is `true` on Windows and `false` on Linux
+- `EliteCompileKinPlugin`: also build the kinematics plugin when the upstream C++ SDK is auto-fetched or built from source
+- `EliteCompilePoseAlgPlugin`: also build the pose algebra plugin when the upstream C++ SDK is auto-fetched or built from source
 
 If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
+
+`EliteCompileKinPlugin` and `EliteCompilePoseAlgPlugin` are forwarded to the native CMake configure step:
+
+```bash
+-DELITE_COMPILE_KIN_PLUGIN=true
+-DELITE_COMPILE_POSE_ALG_PLUGIN=true
+```
+
+Note: if the native build finds an already installed C++ SDK through `find_package(elite-cs-series-sdk)`, it uses that SDK directly and does not rebuild plugins from the installed SDK. In that case, build the plugins in the C++ SDK project beforehand, or clear/adjust the local SDK lookup path so the build uses the auto-fetch/source-build path.
+
+Plugins add extra dependencies. For example, the kinematics plugin requires `orocos_kdl` and `Eigen3`, and the Eigen pose algebra plugin requires `Eigen3`. On Windows, using `vcpkg` with the matching triplet is recommended.
 
 The bootstrap script will derive these automatically from `VCPKG_ROOT`:
 

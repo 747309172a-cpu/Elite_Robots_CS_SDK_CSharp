@@ -128,6 +128,7 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<y
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true
 ```
 
 参数含义：
@@ -137,8 +138,21 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 - `EliteNativeRepoRef`：native 封装仓库使用的分支、tag 或 commit
 - `EliteForceNativeRebuild`：忽略本地缓存并强制重新编译
 - `EliteLinkUpstreamStatic`：是否让 C 封装层链接上游 C++ SDK 的静态库；Windows 默认 `true`，Linux 默认 `false`
+- `EliteCompileKinPlugin`：在自动拉取/源码构建上游 C++ SDK 时，同时编译运动学插件
+- `EliteCompilePoseAlgPlugin`：在自动拉取/源码构建上游 C++ SDK 时，同时编译位姿代数插件
 
 如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
+
+`EliteCompileKinPlugin` 和 `EliteCompilePoseAlgPlugin` 会作为 CMake 参数传给 native 构建流程：
+
+```bash
+-DELITE_COMPILE_KIN_PLUGIN=true
+-DELITE_COMPILE_POSE_ALG_PLUGIN=true
+```
+
+注意：如果 native 构建通过 `find_package(elite-cs-series-sdk)` 找到了本机已安装的 C++ SDK，它会直接使用该 SDK，不会重新编译已安装 SDK 里的插件。此时需要你提前在 C++ SDK 工程中编译好插件，或清理/调整本地 SDK 查找路径，让构建走自动拉取/源码构建流程。
+
+插件会引入额外依赖，例如运动学插件需要 `orocos_kdl` 和 `Eigen3`，位姿代数 Eigen 插件需要 `Eigen3`。Windows 下建议通过 `vcpkg` 安装并配置对应 triplet。
 
 bootstrap 脚本会自动根据 `VCPKG_ROOT` 推导：
 

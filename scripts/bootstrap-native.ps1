@@ -4,7 +4,9 @@ param(
     [string]$RepoUrl = "",
     [string]$RepoRef = "main",
     [string]$ForceRebuild = "false",
-    [string]$LinkUpstreamStatic = "false"
+    [string]$LinkUpstreamStatic = "false",
+    [string]$CompileKinPlugin = "false",
+    [string]$CompilePoseAlgPlugin = "false"
 )
 
 $ErrorActionPreference = "Stop"
@@ -317,7 +319,9 @@ if (-not (Test-Path $stampFile)) {
         "-B", $buildDir,
         "-DELITE_AUTO_FETCH_SDK=ON",
         "-DELITE_BUILD_EXAMPLES=OFF",
-        "-DELITE_LINK_UPSTREAM_STATIC=$($LinkUpstreamStatic.ToLowerInvariant())"
+        "-DELITE_LINK_UPSTREAM_STATIC=$($LinkUpstreamStatic.ToLowerInvariant())",
+        "-DELITE_COMPILE_KIN_PLUGIN=$($CompileKinPlugin.ToLowerInvariant())",
+        "-DELITE_COMPILE_POSE_ALG_PLUGIN=$($CompilePoseAlgPlugin.ToLowerInvariant())"
     )) {
         $configureArgs.Add($arg)
     }

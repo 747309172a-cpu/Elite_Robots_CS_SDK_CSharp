@@ -16,4 +16,8 @@ public sealed class EliteDriverConfig
     public float ServojLookaheadTime { get; set; } = 0.1f;
     public int ServojGain { get; set; } = 300;
     public float StopjAcc { get; set; } = 8.0f;
+    public float ServojExtrapolateMaxTime { get; set; } = 0.08f;
+    public float ServojDecelerateTime { get; set; } = 0.01f;
+    public float ServojHoldVelocityThreshold { get; set; } = 0.05f;
+    public float ServojHoldStableTime { get; set; } = 0.04f;
 }

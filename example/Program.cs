@@ -7,8 +7,10 @@ if (args.Length < 2)
     Console.WriteLine("  dotnet run -- dashboard_client <robot-ip> [--port <dashboard-port>]");
     Console.WriteLine("  dotnet run -- driver <robot-ip> <script-file-path> [--local-ip <ip>] [--headless] [--ssh-password <pwd>] [--with-rs485]");
     Console.WriteLine("  dotnet run -- speedl <robot-ip> [--local-ip <ip>] [--headless <true|false>] [--script-file <path>]");
-    Console.WriteLine("  dotnet run -- trajectory <robot-ip> [--local-ip <ip>] [--headless <true|false>] [--script-file <path>]");
+    Console.WriteLine("  dotnet run -- trajectory <robot-ip> [--local-ip <ip>] [--headless <true|false>] [--use-headless-mode <true|false>] [--script-file <path>]");
     Console.WriteLine("  dotnet run -- servoj_plan <robot-ip> [--local-ip <ip>] [--headless <true|false>] [--max-speed <rad/s>] [--max-acc <rad/s^2>] [--script-file <path>]");
+    Console.WriteLine("  dotnet run -- kinematics <robot-ip> <kinematics-plugin-lib> [plugin-class]");
+    Console.WriteLine("  dotnet run -- pose_algebra <pose-algebra-plugin-lib> [plugin-class]");
     Console.WriteLine("  dotnet run -- rtsi_client <robot-ip> [--port <rtsi-port>]");
     Console.WriteLine("  dotnet run -- serial <robot-ip> --ssh-password <pwd> [--local-ip <ip>] [--headless <true|false>] [--script-file <path>] [--tcp-port <port>]");
     Console.WriteLine("  dotnet run -- connect_robot_test <robot-ip> [--local-ip <ip>] [--server-port <port>] [--wait-ms <ms>]");
@@ -48,6 +50,18 @@ if (string.Equals(args[0], "trajectory", StringComparison.OrdinalIgnoreCase))
 if (string.Equals(args[0], "servoj_plan", StringComparison.OrdinalIgnoreCase))
 {
     ServojPlanExample.Run(args);
+    return;
+}
+
+if (string.Equals(args[0], "kinematics", StringComparison.OrdinalIgnoreCase))
+{
+    KinematicsExample.Run(args);
+    return;
+}
+
+if (string.Equals(args[0], "pose_algebra", StringComparison.OrdinalIgnoreCase))
+{
+    PoseAlgebraExample.Run(args);
     return;
 }
 

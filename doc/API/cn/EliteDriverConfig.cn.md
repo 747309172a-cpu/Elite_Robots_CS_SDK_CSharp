@@ -135,6 +135,42 @@ public float StopjAcc { get; set; } = 8.0f;
 - ***功能***
   - 停止运动的加速度 (rad/s²)。
 
+### ServojExtrapolateMaxTime
+
+```csharp
+public float ServojExtrapolateMaxTime { get; set; } = 0.08f;
+```
+
+- ***功能***
+  - `servoj` 轨迹外推最大时间。
+
+### ServojDecelerateTime
+
+```csharp
+public float ServojDecelerateTime { get; set; } = 0.01f;
+```
+
+- ***功能***
+  - `servoj` 减速时间。
+
+### ServojHoldVelocityThreshold
+
+```csharp
+public float ServojHoldVelocityThreshold { get; set; } = 0.05f;
+```
+
+- ***功能***
+  - `servoj` 保持阶段速度阈值。
+
+### ServojHoldStableTime
+
+```csharp
+public float ServojHoldStableTime { get; set; } = 0.04f;
+```
+
+- ***功能***
+  - `servoj` 保持阶段稳定时间。
+
 ## 注意事项
 
 - `RobotIp` 与 `ScriptFilePath` 需要提供有效值。

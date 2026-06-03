@@ -8,6 +8,8 @@ public sealed class EliteDriver : IDisposable
     private readonly GCHandle _selfHandle;
     private NativeMethods.EliteDriverTrajectoryResultCallback? _nativeTrajectoryResultCallback;
     private Action<TrajectoryMotionResult>? _managedTrajectoryResultCallback;
+    private NativeMethods.EliteDriverTrajectoryFeedbackCallback? _nativeTrajectoryFeedbackCallback;
+    private Action<TrajectoryMotionFeedback>? _managedTrajectoryFeedbackCallback;
     private NativeMethods.EliteDriverRobotExceptionCallback? _nativeRobotExceptionCallback;
     private Action<EliteDriverRobotException>? _managedRobotExceptionCallback;
     private Action<RobotException>? _managedWrappedRobotExceptionCallback;
@@ -40,6 +42,10 @@ public sealed class EliteDriver : IDisposable
         native.servoj_lookahead_time = config.ServojLookaheadTime;
         native.servoj_gain = config.ServojGain;
         native.stopj_acc = config.StopjAcc;
+        native.servoj_extrapolate_max_time = config.ServojExtrapolateMaxTime;
+        native.servoj_decelerate_time = config.ServojDecelerateTime;
+        native.servoj_hold_velocity_threshold = config.ServojHoldVelocityThreshold;
+        native.servoj_hold_stable_time = config.ServojHoldStableTime;
 
         var status = NativeMethods.elite_driver_create(ref native, out var rawHandle);
         ThrowIfError(status, rawHandle);
@@ -112,6 +118,21 @@ public sealed class EliteDriver : IDisposable
         setTrajectoryResultCallback(null);
     }
 
+    public void setTrajectoryFeedbackCallback(Action<TrajectoryMotionFeedback>? cb)
+    {
+        _managedTrajectoryFeedbackCallback = cb;
+        var status = NativeMethods.elite_driver_set_trajectory_feedback_callback(
+            _handle.DangerousGetHandle(),
+            cb is null ? null : (_nativeTrajectoryFeedbackCallback ??= OnNativeTrajectoryFeedback),
+            cb is null ? nint.Zero : GCHandle.ToIntPtr(_selfHandle));
+        ThrowIfError(status, _handle.DangerousGetHandle());
+    }
+
+    public void clearTrajectoryFeedbackCallback()
+    {
+        setTrajectoryFeedbackCallback(null);
+    }
+
     public bool writeTrajectoryPoint(double[] positions, float time, float blend_radius, bool cartesian)
     {
         ValidateVector6(positions, nameof(positions));
@@ -121,6 +142,21 @@ public sealed class EliteDriver : IDisposable
             time,
             blend_radius,
             cartesian ? 1 : 0,
+            out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool writeTrajectoryPoint(double[] positions, float blend_radius, bool cartesian, float speed, float acceleration)
+    {
+        ValidateVector6(positions, nameof(positions));
+        var status = NativeMethods.elite_driver_write_trajectory_point_with_speed(
+            _handle.DangerousGetHandle(),
+            positions,
+            blend_radius,
+            cartesian ? 1 : 0,
+            speed,
+            acceleration,
             out var success);
         ThrowIfError(status, _handle.DangerousGetHandle());
         return success != 0;
@@ -359,6 +395,7 @@ public sealed class EliteDriver : IDisposable
     public void Dispose()
     {
         _managedTrajectoryResultCallback = null;
+        _managedTrajectoryFeedbackCallback = null;
         _managedRobotExceptionCallback = null;
         _managedWrappedRobotExceptionCallback = null;
         _handle.Dispose();
@@ -427,6 +464,35 @@ public sealed class EliteDriver : IDisposable
             return;
         }
         client._managedTrajectoryResultCallback((TrajectoryMotionResult)result);
+    }
+
+    private static void OnNativeTrajectoryFeedback(ref NativeMethods.EliteDriverTrajectoryFeedbackNative feedback, nint userData)
+    {
+        if (userData == nint.Zero)
+        {
+            return;
+        }
+
+        var gch = GCHandle.FromIntPtr(userData);
+        if (gch.Target is not EliteDriver client || client._managedTrajectoryFeedbackCallback is null)
+        {
+            return;
+        }
+
+        var point = new double[6];
+        if (feedback.point is not null)
+        {
+            Array.Copy(feedback.point, point, Math.Min(feedback.point.Length, point.Length));
+        }
+
+        client._managedTrajectoryFeedbackCallback(new TrajectoryMotionFeedback
+        {
+            MessageType = (TrajectoryFeedbackMessageType)feedback.message_type,
+            PointIndex = feedback.point_index,
+            TotalPoints = feedback.total_points,
+            Result = (TrajectoryMotionResult)feedback.result,
+            Point = point,
+        });
     }
 
     private static void OnNativeRobotException(ref NativeMethods.EliteDriverRobotExceptionNative ex, nint userData)

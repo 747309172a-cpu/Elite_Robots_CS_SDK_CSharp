@@ -20,6 +20,20 @@ This document is an index of the C# API documentation for `Elite_Robots_CS_SDK_C
 - ***Document***
   - [EliteDriverConfig.en.md](./EliteDriverConfig.en.md)
 
+### KinematicsBase
+
+- ***Function***
+  - Kinematics plugin interface for MDH setup, forward kinematics, and inverse kinematics.
+- ***Document***
+  - [KinematicsBase.en.md](./KinematicsBase.en.md)
+
+### PoseAlgebraBase
+
+- ***Function***
+  - Pose algebra plugin interface for pose matrix/vector conversion, composition, inverse, frame conversion, and distance calculation.
+- ***Document***
+  - [PoseAlgebraBase.en.md](./PoseAlgebraBase.en.md)
+
 ### PrimaryPort
 
 - ***Function***

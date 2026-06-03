@@ -178,6 +178,33 @@ public void clearTrajectoryResultCallback()
 - ***返回值***
   - 无。
 
+### setTrajectoryFeedbackCallback
+
+```csharp
+public void setTrajectoryFeedbackCallback(Action<TrajectoryMotionFeedback>? cb)
+```
+
+- ***功能***
+  - 注册轨迹运动反馈回调。回调中可获取反馈类型、当前点索引、总点数、运动结果和当前点位。
+  - 传入 `null` 时会取消当前已注册的轨迹反馈回调。
+- ***参数***
+  - `cb`：轨迹反馈回调函数；传入 `null` 表示取消注册。
+- ***返回值***
+  - 无。
+
+### clearTrajectoryFeedbackCallback
+
+```csharp
+public void clearTrajectoryFeedbackCallback()
+```
+
+- ***功能***
+  - 清除当前已注册的轨迹反馈回调。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 无。
+
 ### writeTrajectoryPoint
 
 ```csharp
@@ -191,6 +218,23 @@ public bool writeTrajectoryPoint(double[] positions, float time, float blend_rad
   - `time`：该点执行时间。
   - `blend_radius`：过渡半径。
   - `cartesian`：是否笛卡尔点位。
+- ***返回值***
+  - 成功返回 `true`，失败返回 `false`。
+
+### writeTrajectoryPoint
+
+```csharp
+public bool writeTrajectoryPoint(double[] positions, float blend_radius, bool cartesian, float speed, float acceleration)
+```
+
+- ***功能***
+  - 按速度和加速度方式写入轨迹路点，对应 C++ SDK 的 `writeTrajectoryPoint` 重载。
+- ***参数***
+  - `positions`：轨迹路点，长度必须为 6。
+  - `blend_radius`：过渡半径。
+  - `cartesian`：是否笛卡尔点位。
+  - `speed`：速度。
+  - `acceleration`：加速度。
 - ***返回值***
   - 成功返回 `true`，失败返回 `false`。
 

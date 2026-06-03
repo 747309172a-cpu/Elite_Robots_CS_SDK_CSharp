@@ -29,6 +29,8 @@ Supported modes (see `Program.cs`):
 - `speedl`
 - `trajectory`
 - `servoj_plan`
+- `kinematics`
+- `pose_algebra`
 - `rtsi_client`
 - `serial`
 - `connect_robot_test`
@@ -51,10 +53,16 @@ dotnet run --project example -- driver 172.16.102.156 /path/to/external_control.
 dotnet run --project example -- speedl 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
 # Trajectory sample
-dotnet run --project example -- trajectory 172.16.102.156 --headless true --script-file /path/to/external_control.script
+dotnet run --project example -- trajectory 172.16.102.156 --use-headless-mode true --script-file /path/to/external_control.script
 
 # Servoj planning sample
 dotnet run --project example -- servoj_plan 172.16.102.156 --headless true --script-file /path/to/external_control.script
+
+# Kinematics sample
+dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so
+
+# PoseAlgebra sample
+dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so
 
 # RTSI client sample
 dotnet run --project example -- rtsi_client 172.16.102.156 --port 30004
@@ -175,30 +183,41 @@ If runtime reports `DllNotFoundException: elite_cs_series_sdk_c`, the usual caus
 
 ### 5.5 `trajectory`
 
-- Function: trajectory motion sample with callback-based completion detection.
+- Function: trajectory motion sample with result callback, trajectory feedback callback, time-based trajectory, and speed-based trajectory.
 - Flow:
   - read current joint/TCP through RTSI
   - start control
-  - execute joint `move`
-  - send Cartesian trajectory points via `writeTrajectoryPoint`
-  - keep sending NOOP and wait for callback result
+  - move to a joint target using speed mode
+  - send Cartesian trajectory points using time mode
+  - send the same Cartesian trajectory again using speed/acceleration mode
+  - keep sending NOOP and print current-point progress from the trajectory feedback callback
 
 ### 5.6 `servoj_plan`
 
 - Function: trapezoidal speed planning sample using `servoj`.
 - Flow: compute trapezoidal trajectory for joint 6 and continuously send points via `writeServoj`.
 
-### 5.7 `rtsi_client`
+### 5.7 `kinematics`
+
+- Function: demonstrate `KinematicsBase` forward/inverse kinematics APIs.
+- Flow: read MDH parameters from `Primary`, read current joint/TCP data from `RTSI`, load the kinematics plugin, then call `setMDH -> getPositionFK -> getPositionIK`.
+
+### 5.8 `pose_algebra`
+
+- Function: demonstrate `PoseAlgebraBase` pose algebra APIs.
+- Flow: load the pose algebra plugin, then test `vectorToMatrix/matrixToVector`, `multiply`, `inverse`, `worldToLocal/localToWorld`, `add/subtract`, and `distance`.
+
+### 5.9 `rtsi_client`
 
 - Function: generic RTSI client sample.
 - Flow: `connect -> protocol negotiation -> setup recipe -> start/receive -> send input recipe -> pause/disconnect`
 
-### 5.8 `serial`
+### 5.10 `serial`
 
 - Function: open tool-side RS485 communication through Driver.
 - Flow: `dashboard ready -> external control ready -> startToolRs485 -> serial connect/write/read -> endToolRs485`
 
-### 5.9 `connect_robot_test`
+### 5.11 `connect_robot_test`
 
 - Function: verify whether robot can reverse-connect to PC socket via script.
 - Flow: start local TCP server, send script through Primary, verify returned robot string.

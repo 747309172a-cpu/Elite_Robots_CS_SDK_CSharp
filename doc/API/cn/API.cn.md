@@ -20,6 +20,19 @@
 - ***文档***
   - [EliteDriverConfig.cn.md](./EliteDriverConfig.cn.md)
 
+### KinematicsBase
+
+- ***功能***
+  - 运动学插件接口，提供 MDH 参数设置、正解和逆解。
+- ***文档***
+  - [KinematicsBase.cn.md](./KinematicsBase.cn.md)
+
+### PoseAlgebraBase
+
+- ***功能***
+  - 位姿代数插件接口，提供位姿矩阵/向量转换、复合、逆、坐标系转换和距离计算。
+- ***文档***
+  - [PoseAlgebraBase.cn.md](./PoseAlgebraBase.cn.md)
 
 ### PrimaryPort
 
@@ -69,7 +82,6 @@
   - 控制器系统日志。
 - ***文档***
   - [ControllerLog.cn.md](./ControllerLog.cn.md)
-
 
 
 

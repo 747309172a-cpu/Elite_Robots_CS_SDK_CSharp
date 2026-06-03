@@ -7,6 +7,22 @@ public enum TrajectoryMotionResult
     FAILURE = 2,
 }
 
+public enum TrajectoryFeedbackMessageType
+{
+    ACTIVE_POINT = 1,
+    POINT_DONE = 2,
+    RESULT = 3,
+}
+
+public sealed class TrajectoryMotionFeedback
+{
+    public TrajectoryFeedbackMessageType MessageType { get; init; }
+    public int PointIndex { get; init; }
+    public int TotalPoints { get; init; }
+    public TrajectoryMotionResult Result { get; init; }
+    public double[] Point { get; init; } = new double[6];
+}
+
 public enum TrajectoryControlAction
 {
     CANCEL = -1,

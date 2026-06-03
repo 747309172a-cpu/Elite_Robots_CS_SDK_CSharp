@@ -29,6 +29,8 @@ dotnet run --project example -- <mode> <args...>
 - `speedl`
 - `trajectory`
 - `servoj_plan`
+- `kinematics`
+- `pose_algebra`
 - `rtsi_client`
 - `serial`
 - `connect_robot_test`
@@ -51,10 +53,16 @@ dotnet run --project example -- driver 172.16.102.156 /path/to/external_control.
 dotnet run --project example -- speedl 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
 # Trajectory
-dotnet run --project example -- trajectory 172.16.102.156 --headless true --script-file /path/to/external_control.script
+dotnet run --project example -- trajectory 172.16.102.156 --use-headless-mode true --script-file /path/to/external_control.script
 
 # Servoj
 dotnet run --project example -- servoj_plan 172.16.102.156 --headless true --script-file /path/to/external_control.script
+
+# Kinematics
+dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so
+
+# PoseAlgebra
+dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so
 
 # RTSI Client
 dotnet run --project example -- rtsi_client 172.16.102.156 --port 30004
@@ -175,30 +183,41 @@ MyApp/bin/Debug/net8.0/
 
 ### 5.5 `trajectory`
 
-- 功能：轨迹运动示例，包含基于回调的完成判定。
+- 功能：轨迹运动示例，包含结果回调、轨迹反馈回调、按时间轨迹和按速度轨迹。
 - 流程：
   - 通过 RTSI 读取当前关节/TCP
   - 启动控制
-  - 先执行关节 `move`
-  - 再用 `writeTrajectoryPoint` 下发笛卡尔轨迹点
-  - 循环发送 NOOP 保活并等待回调结果
+  - 先用速度模式执行关节目标点运动
+  - 再用时间模式下发笛卡尔轨迹点
+  - 最后用速度/加速度模式再次下发笛卡尔轨迹点
+  - 循环发送 NOOP 保活，并通过轨迹反馈回调打印当前点进度
 
 ### 5.6 `servoj_plan`
 
 - 功能：梯形速度规划 `servoj` 示例。
 - 流程：计算第 6 关节梯形速度轨迹并循环 `writeServoj` 下发点位。
 
-### 5.7 `rtsi_client`
+### 5.7 `kinematics`
+
+- 功能：演示 `KinematicsBase` 正逆解接口。
+- 流程：`Primary` 读取 MDH 参数，`RTSI` 读取当前关节/TCP，加载运动学插件，调用 `setMDH -> getPositionFK -> getPositionIK`。
+
+### 5.8 `pose_algebra`
+
+- 功能：演示 `PoseAlgebraBase` 位姿代数接口。
+- 流程：加载位姿代数插件，依次测试 `vectorToMatrix/matrixToVector`、`multiply`、`inverse`、`worldToLocal/localToWorld`、`add/subtract`、`distance`。
+
+### 5.9 `rtsi_client`
 
 - 功能：RTSI 通用客户端示例。
 - 流程：`connect -> 协议协商 -> 配置 recipe -> start/receive -> 发送输入 recipe -> pause/disconnect`
 
-### 5.8 `serial`
+### 5.10 `serial`
 
 - 功能：通过 Driver 打通工具端 RS485 串口通信。
 - 流程：`dashboard 就绪 -> 外控就绪 -> startToolRs485 -> 串口 connect/write/read -> endToolRs485`
 
-### 5.9 `connect_robot_test`
+### 5.11 `connect_robot_test`
 
 - 功能：验证机器人能否通过脚本反连 PC 套接字。
 - 流程：本地启动 TCP 服务，Primary 下发脚本，校验机器人返回字符串。

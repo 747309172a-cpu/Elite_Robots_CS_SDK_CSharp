@@ -135,6 +135,42 @@ public float StopjAcc { get; set; } = 8.0f;
 - ***Function***
   - Deceleration used to stop motion (`rad/s²`).
 
+### ServojExtrapolateMaxTime
+
+```csharp
+public float ServojExtrapolateMaxTime { get; set; } = 0.08f;
+```
+
+- ***Function***
+  - Maximum extrapolation time for `servoj` trajectory handling.
+
+### ServojDecelerateTime
+
+```csharp
+public float ServojDecelerateTime { get; set; } = 0.01f;
+```
+
+- ***Function***
+  - Deceleration time for `servoj`.
+
+### ServojHoldVelocityThreshold
+
+```csharp
+public float ServojHoldVelocityThreshold { get; set; } = 0.05f;
+```
+
+- ***Function***
+  - Velocity threshold for the `servoj` hold phase.
+
+### ServojHoldStableTime
+
+```csharp
+public float ServojHoldStableTime { get; set; } = 0.04f;
+```
+
+- ***Function***
+  - Stable time for the `servoj` hold phase.
+
 ## Notes
 
 - `RobotIp` and `ScriptFilePath` must be assigned valid values.

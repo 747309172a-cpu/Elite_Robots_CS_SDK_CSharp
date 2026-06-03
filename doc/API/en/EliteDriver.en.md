@@ -177,6 +177,33 @@ public void clearTrajectoryResultCallback()
 - ***Return Value***
   - None.
 
+### setTrajectoryFeedbackCallback
+
+```csharp
+public void setTrajectoryFeedbackCallback(Action<TrajectoryMotionFeedback>? cb)
+```
+
+- ***Function***
+  - Register a trajectory motion feedback callback. The callback provides feedback type, current point index, total point count, motion result, and current point.
+  - Passing `null` unregisters the currently registered trajectory feedback callback.
+- ***Parameters***
+  - `cb`: trajectory feedback callback function; pass `null` to unregister it.
+- ***Return Value***
+  - None.
+
+### clearTrajectoryFeedbackCallback
+
+```csharp
+public void clearTrajectoryFeedbackCallback()
+```
+
+- ***Function***
+  - Clear the currently registered trajectory feedback callback.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - None.
+
 ### writeTrajectoryPoint
 
 ```csharp
@@ -190,6 +217,23 @@ public bool writeTrajectoryPoint(double[] positions, float time, float blend_rad
   - `time`: execution time for this point.
   - `blend_radius`: blend radius.
   - `cartesian`: whether the point is a Cartesian point.
+- ***Return Value***
+  - Returns `true` on success, otherwise `false`.
+
+### writeTrajectoryPoint
+
+```csharp
+public bool writeTrajectoryPoint(double[] positions, float blend_radius, bool cartesian, float speed, float acceleration)
+```
+
+- ***Function***
+  - Write a trajectory waypoint using speed and acceleration. This corresponds to the C++ SDK `writeTrajectoryPoint` overload.
+- ***Parameters***
+  - `positions`: trajectory waypoint, length must be 6.
+  - `blend_radius`: blend radius.
+  - `cartesian`: whether the point is a Cartesian point.
+  - `speed`: speed.
+  - `acceleration`: acceleration.
 - ***Return Value***
   - Returns `true` on success, otherwise `false`.
 

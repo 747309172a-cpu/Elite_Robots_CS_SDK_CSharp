@@ -32,6 +32,10 @@ internal static partial class NativeMethods
         public float servoj_lookahead_time;
         public int servoj_gain;
         public float stopj_acc;
+        public float servoj_extrapolate_max_time;
+        public float servoj_decelerate_time;
+        public float servoj_hold_velocity_threshold;
+        public float servoj_hold_stable_time;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -63,8 +67,50 @@ internal static partial class NativeMethods
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void EliteDriverTrajectoryResultCallback(int result, nint userData);
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct EliteDriverTrajectoryFeedbackNative
+    {
+        public int message_type;
+        public int point_index;
+        public int total_points;
+        public int result;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
+        public double[] point;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void EliteDriverTrajectoryFeedbackCallback(ref EliteDriverTrajectoryFeedbackNative feedback, nint userData);
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void EliteDriverRobotExceptionCallback(ref EliteDriverRobotExceptionNative ex, nint userData);
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct EliteKinematicsResultNative
+    {
+        public int kinematic_error;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ElitePoseMatrixNative
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public double[] data;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ElitePoseDistanceNative
+    {
+        public double linear_distance;
+        public double angular_distance;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ElitePoseAlgebraResultNative
+    {
+        public int error;
+        public nint message;
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct EliteVersionInfoNative
@@ -127,12 +173,28 @@ internal static partial class NativeMethods
         nint userData);
 
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_driver_set_trajectory_feedback_callback(
+        nint handle,
+        EliteDriverTrajectoryFeedbackCallback? cb,
+        nint userData);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EliteStatus elite_driver_write_trajectory_point(
         nint handle,
         [In] double[] positions6,
         float time,
         float blendRadius,
         int cartesian,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_driver_write_trajectory_point_with_speed(
+        nint handle,
+        [In] double[] positions6,
+        float blendRadius,
+        int cartesian,
+        float speed,
+        float acceleration,
         out int outSuccess);
 
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
@@ -625,6 +687,216 @@ internal static partial class NativeMethods
         nint handle,
         ElitePrimaryRobotExceptionCallback? cb,
         nint userData);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_create(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string pluginLibPath,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? pluginClassName,
+        out nint outHandle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void elite_kinematics_destroy(nint handle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_set_mdh(
+        nint handle,
+        [In] double[] alpha6,
+        [In] double[] a6,
+        [In] double[] d6);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_get_position_fk(
+        nint handle,
+        [In] double[] jointAngles6,
+        [Out] double[] outPose6,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_get_position_ik(
+        nint handle,
+        [In] double[] pose6,
+        [In] double[] near6,
+        [Out] double[] outSolution6,
+        out EliteKinematicsResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_get_position_ik_all(
+        nint handle,
+        [In] double[] pose6,
+        [In] double[] near6,
+        [Out] double[] outSolutions6,
+        int maxSolutions,
+        out int outSolutionCount,
+        out EliteKinematicsResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_set_default_timeout(nint handle, double timeout);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_kinematics_get_default_timeout(nint handle, out double outTimeout);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint elite_kinematics_last_error_message(nint handle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint elite_kinematics_global_last_error_message();
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_create(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string pluginLibPath,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string? pluginClassName,
+        out nint outHandle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void elite_pose_algebra_destroy(nint handle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_inverse_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative pose,
+        ref ElitePoseMatrixNative outInversePose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_inverse_vector(
+        nint handle,
+        [In] double[] pose6,
+        [Out] double[] outInversePose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_multiply_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative leftPose,
+        ref ElitePoseMatrixNative rightPose,
+        ref ElitePoseMatrixNative outPose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_multiply_vector(
+        nint handle,
+        [In] double[] leftPose6,
+        [In] double[] rightPose6,
+        [Out] double[] outPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_add_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative leftPose,
+        ref ElitePoseMatrixNative rightPose,
+        ref ElitePoseMatrixNative outPose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_add_vector(
+        nint handle,
+        [In] double[] leftPose6,
+        [In] double[] rightPose6,
+        [Out] double[] outPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_subtract_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative leftPose,
+        ref ElitePoseMatrixNative rightPose,
+        ref ElitePoseMatrixNative outPose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_subtract_vector(
+        nint handle,
+        [In] double[] leftPose6,
+        [In] double[] rightPose6,
+        [Out] double[] outPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_vector_to_matrix(
+        nint handle,
+        [In] double[] pose6,
+        ref ElitePoseMatrixNative outPoseMatrix,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_matrix_to_vector(
+        nint handle,
+        ref ElitePoseMatrixNative poseMatrix,
+        [Out] double[] outPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_distance_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative poseA,
+        ref ElitePoseMatrixNative poseB,
+        out ElitePoseDistanceNative outDistance,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_distance_vector(
+        nint handle,
+        [In] double[] poseA6,
+        [In] double[] poseB6,
+        out ElitePoseDistanceNative outDistance,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_world_to_local_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative worldRefPose,
+        ref ElitePoseMatrixNative worldPose,
+        ref ElitePoseMatrixNative outLocalPose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_world_to_local_vector(
+        nint handle,
+        [In] double[] worldRefPose6,
+        [In] double[] worldPose6,
+        [Out] double[] outLocalPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_local_to_world_matrix(
+        nint handle,
+        ref ElitePoseMatrixNative worldRefPose,
+        ref ElitePoseMatrixNative localPose,
+        ref ElitePoseMatrixNative outWorldPose,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_pose_algebra_local_to_world_vector(
+        nint handle,
+        [In] double[] worldRefPose6,
+        [In] double[] localPose6,
+        [Out] double[] outWorldPose6,
+        out ElitePoseAlgebraResultNative outResult,
+        out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint elite_pose_algebra_last_error_message(nint handle);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern nint elite_pose_algebra_global_last_error_message();
 }
 
 internal sealed class EliteDriverSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
@@ -743,6 +1015,46 @@ internal sealed class EliteRtsiRecipeSafeHandle : SafeHandleZeroOrMinusOneIsInva
     protected override bool ReleaseHandle()
     {
         NativeMethods.elite_rtsi_recipe_destroy(handle);
+        return true;
+    }
+}
+
+internal sealed class EliteKinematicsSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+{
+    internal EliteKinematicsSafeHandle()
+        : base(ownsHandle: true)
+    {
+    }
+
+    internal EliteKinematicsSafeHandle(nint preexistingHandle)
+        : base(ownsHandle: true)
+    {
+        SetHandle(preexistingHandle);
+    }
+
+    protected override bool ReleaseHandle()
+    {
+        NativeMethods.elite_kinematics_destroy(handle);
+        return true;
+    }
+}
+
+internal sealed class ElitePoseAlgebraSafeHandle : SafeHandleZeroOrMinusOneIsInvalid
+{
+    internal ElitePoseAlgebraSafeHandle()
+        : base(ownsHandle: true)
+    {
+    }
+
+    internal ElitePoseAlgebraSafeHandle(nint preexistingHandle)
+        : base(ownsHandle: true)
+    {
+        SetHandle(preexistingHandle);
+    }
+
+    protected override bool ReleaseHandle()
+    {
+        NativeMethods.elite_pose_algebra_destroy(handle);
         return true;
     }
 }

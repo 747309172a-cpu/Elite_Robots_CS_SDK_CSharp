@@ -1,3 +1,11 @@
 ## [Unrelease]
+### Added
+- Added `EliteDriver` trajectory feedback callback, speed/acceleration-based `writeTrajectoryPoint` overload, and four new `servoj` configuration fields.
+- Added the `KinematicsBase` C# wrapper with `setMDH`, `getPositionFK`, `getPositionIK`, and default-timeout APIs.
+- Added the `PoseAlgebraBase` C# wrapper with pose matrix/vector conversion, composition, inverse, add/subtract, frame conversion, and distance calculation.
+- Added `kinematics` and `pose_algebra` C# examples.
+- Updated the `trajectory` C# example to match the C++ SDK sample flow, covering trajectory feedback, time-based trajectory, and speed-based trajectory.
+- Updated Chinese and English user guides and API documentation for the new interfaces and examples.
+
 ### Initial Release
 - First public version release

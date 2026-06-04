@@ -29,6 +29,17 @@ public KinematicsBase(string plugin_lib_path, string? plugin_class_name = null)
   - `ArgumentNullException`：`plugin_lib_path` 为空。
   - `EliteSdkException`：插件加载或实例创建失败。
 
+## 插件库
+
+常用插件动态库和类名：
+
+| 平台 | 插件动态库 | 插件类名 |
+| --- | --- | --- |
+| Windows | `elite_kdl_kinematics.dll` | `ELITE::KdlKinematicsPlugin` |
+| Linux | `libelite_kdl_kinematics.so` | `ELITE::KdlKinematicsPlugin` |
+
+Windows 下运行目录还必须包含 `elite_cs_sdk.dll`、`elite_cs_series_sdk_c.dll` 和 `elite_cs_series_sdk.dll`。插件 DLL 需要使用 `/p:EliteLinkUpstreamStatic=false` 编译；否则即使 DLL 文件都存在，创建插件实例也可能失败。
+
 ## 相关类型
 
 ### KinematicsResult
@@ -202,6 +213,39 @@ public void Dispose()
 
 ## 示例
 
+Windows 下最小 C# 用法：
+
+```csharp
+using System;
+using System.IO;
+using EliteRobots.CSharp;
+
+var pluginPath = Path.Combine(AppContext.BaseDirectory, "elite_kdl_kinematics.dll");
+
+using var kinematics = new KinematicsBase(pluginPath, "ELITE::KdlKinematicsPlugin");
+
+double[] alpha = { 0, -Math.PI / 2, 0, -Math.PI / 2, Math.PI / 2, -Math.PI / 2 };
+double[] a = { 0, 0, -0.425, -0.39225, 0, 0 };
+double[] d = { 0.089159, 0, 0, 0.10915, 0.09465, 0.0823 };
+kinematics.setMDH(alpha, a, d);
+
+double[] joints = { 0, -1.57, 1.57, 0, 1.57, 0 };
+double[] pose = new double[6];
+
+if (kinematics.getPositionFK(joints, pose))
+{
+    Console.WriteLine(string.Join(", ", pose));
+}
+```
+
+Linux 下运行示例工程：
+
 ```bash
 dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so ELITE::KdlKinematicsPlugin
+```
+
+Windows 下运行示例工程：
+
+```powershell
+dotnet run --project example -- kinematics 172.16.102.156 .\libs\elite_kdl_kinematics.dll ELITE::KdlKinematicsPlugin
 ```

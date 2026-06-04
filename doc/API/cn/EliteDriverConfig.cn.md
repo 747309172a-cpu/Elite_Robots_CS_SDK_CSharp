@@ -115,7 +115,7 @@ public float ServojLookaheadTime { get; set; } = 0.1f;
 ```
 
 - ***功能***
-  - `servoj()`指令瞻时间，范围 [0.03, 0.2] 秒。
+  - `servoj()` 指令前瞻时间，范围 [0.03, 0.2] 秒。
 
 ### ServojGain
 

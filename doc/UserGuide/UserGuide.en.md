@@ -59,10 +59,16 @@ dotnet run --project example -- trajectory 172.16.102.156 --use-headless-mode tr
 dotnet run --project example -- servoj_plan 172.16.102.156 --headless true --script-file /path/to/external_control.script
 
 # Kinematics sample
-dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so
+dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so ELITE::KdlKinematicsPlugin
+
+# Kinematics sample on Windows, when the DLLs are under libs/
+dotnet run --project example -- kinematics 172.16.102.156 .\libs\elite_kdl_kinematics.dll ELITE::KdlKinematicsPlugin
 
 # PoseAlgebra sample
-dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so
+dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so ELITE::EigenPoseAlgebra
+
+# PoseAlgebra sample on Windows, when the DLLs are under libs/
+dotnet run --project example -- pose_algebra .\libs\elite_eigen_pose_algebra.dll ELITE::EigenPoseAlgebra
 
 # RTSI client sample
 dotnet run --project example -- rtsi_client 172.16.102.156 --port 30004
@@ -131,17 +137,27 @@ dotnet run
 
 ### 4.2 Use DLLs directly from Visual Studio on Windows
 
-**This workflow requires the following two DLL files**
+**This workflow has two DLL sets.**
+
+For basic APIs such as Dashboard, Primary, RTSI, Driver, and serial communication, copy:
 
 - `elite_cs_sdk.dll`: the managed C# wrapper
 - `elite_cs_series_sdk_c.dll`: the native C wrapper
+
+For plugin APIs or examples that use `KinematicsBase` or `PoseAlgebraBase`, also copy:
+
+- `elite_cs_series_sdk.dll`: the upstream C++ SDK DLL used by the C wrapper and plugins
+- `elite_kdl_kinematics.dll`: kinematics plugin, class name `ELITE::KdlKinematicsPlugin`
+- `elite_eigen_pose_algebra.dll`: Eigen pose algebra plugin, class name `ELITE::EigenPoseAlgebra`
+- `elite_pose_algebra.dll`: alternate pose algebra plugin, class name `ELITE::ElitePoseAlgebra`
 
 Recommended steps:
 
 1. Create a new `.NET 8` console project in Visual Studio.
 2. Add a reference to `elite_cs_sdk.dll` from this repository's build output directory.
-3. Copy `elite_cs_series_sdk_c.dll` into your application's output directory, or configure it to copy to `bin/Debug/net8.0/` or `bin/Release/net8.0/` during build.
-4. Make sure the final runtime directory contains your app, `elite_cs_sdk.dll`, and the required native DLL.
+3. Copy the required native DLLs into your application's output directory, or configure them to copy to `bin/Debug/net8.0/` or `bin/Release/net8.0/` during build.
+4. If your program keeps plugin DLLs in a `libs` folder, pass that path to the plugin constructor, for example `Path.Combine(AppContext.BaseDirectory, "libs", "elite_kdl_kinematics.dll")`.
+5. Make sure the final runtime directory contains your app, `elite_cs_sdk.dll`, and the required native DLLs.
 
 A minimal layout looks like this:
 
@@ -151,11 +167,17 @@ MyApp/bin/Debug/net8.0/
   MyApp.dll
   elite_cs_sdk.dll
   elite_cs_series_sdk_c.dll
+  elite_cs_series_sdk.dll
+  elite_kdl_kinematics.dll
+  elite_eigen_pose_algebra.dll
+  elite_pose_algebra.dll
 ```
 
 For a code example, refer to the examples under `example` and adjust recipe and script file paths as needed.
 
 If runtime reports `DllNotFoundException: elite_cs_series_sdk_c`, the usual cause is that the native DLL was not copied into the runtime directory.
+
+If plugin creation fails on Windows with a message similar to `failed to create pose algebra plugin instance` or `failed to create kinematics plugin instance`, rebuild the SDK and plugins with `/p:EliteLinkUpstreamStatic=false`, then copy the regenerated DLLs together.
 
 ---
 
@@ -245,17 +267,29 @@ Recipe file locations:
     - the native repository can access the upstream SDK when `ELITE_AUTO_FETCH_SDK=ON` is needed
     - if the URL is derived automatically, the current repository `origin` actually points to the matching owner/fork
     - if GitHub is not reachable in the current network, make sure Gitee is reachable instead
+  - To use private mirrors, pass `/p:EliteNativeRepoUrl=...` for the C wrapper repository and `/p:EliteUpstreamSdkRepoUrl=...` for the upstream C++ SDK repository.
 - If you are using the NuGet package from another project:
   - Make sure you referenced a package built after the native runtime files were prepared under `.native-out/`
   - Re-add the package after updating to a newer package version if the old package cache is still being used
   - Confirm the native library file has been copied into the project output directory
 
-### 7.2 Serial sample reports `SSH connection failed: Connection refused`
+### 7.2 Windows plugin creation fails
+
+- If `KinematicsBase` or `PoseAlgebraBase` reports `failed to create kinematics plugin instance` or `failed to create pose algebra plugin instance`, rebuild with:
+
+```powershell
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteLinkUpstreamStatic=false
+```
+
+- Then copy the regenerated `elite_cs_sdk.dll`, `elite_cs_series_sdk_c.dll`, `elite_cs_series_sdk.dll`, and plugin DLLs into the same runtime layout.
+- Also verify that the constructor uses the matching plugin class name, such as `ELITE::KdlKinematicsPlugin` or `ELITE::EigenPoseAlgebra`.
+
+### 7.3 Serial sample reports `SSH connection failed: Connection refused`
 
 - `startToolRs485` depends on controller SSH.
 - Check whether controller SSH is enabled, port 22 is reachable, and firewall/routing is not blocking.
 
-### 7.3 Windows reports `NMAKE fatal error U1052: cannot open 'Makefile'`
+### 7.4 Windows reports `NMAKE fatal error U1052: cannot open 'Makefile'`
 
 - This is usually not the root cause. It normally means the earlier `cmake` configure step already failed, and `cmake --build` was still executed afterwards.
 - Verify:
@@ -264,7 +298,7 @@ Recipe file locations:
   - the native wrapper repository and its upstream dependencies are reachable
 - After updating to a version with the latest bootstrap script, the build should stop at the real `cmake configure` failure instead of only showing the trailing `NMAKE` error.
 
-### 7.4 Windows reports `Could NOT find Boost`
+### 7.5 Windows reports `Could NOT find Boost`
 
 - This usually means the upstream C++ SDK dependencies were not exposed to `cmake` through `vcpkg` or another prefix path.
 - If Boost was installed via `vcpkg`, set:
@@ -273,7 +307,7 @@ Recipe file locations:
   - and, when needed, `VCPKG_TARGET_TRIPLET`
 - If dependencies live in a custom install prefix, set `CMAKE_PREFIX_PATH` instead.
 
-### 7.5 `RtUtils` FIFO scheduling warning
+### 7.6 `RtUtils` FIFO scheduling warning
 
 - This is usually a real-time scheduling optimization warning, not a fatal error.
 

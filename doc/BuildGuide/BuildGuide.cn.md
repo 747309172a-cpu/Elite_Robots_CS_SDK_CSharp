@@ -79,6 +79,14 @@ dotnet build src/elite_cs_sdk.csproj
 dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
 
+如果 Windows 下需要生成运动学和位姿代数插件 DLL，请开启插件编译，并让上游 C++ SDK 以动态库方式链接：
+
+```bat
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteLinkUpstreamStatic=false
+```
+
+`EliteLinkUpstreamStatic=false` 是 Windows 下运行时加载插件的必要配置。使用 Windows 默认的 `EliteLinkUpstreamStatic=true` 时，DLL 可能可以正常编译出来，但运行时创建插件实例可能失败，因为 C 封装 DLL 和插件 DLL 没有共享同一个上游 SDK DLL 注册表。
+
 编译 example：
 
 ```bat
@@ -127,8 +135,10 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
+dotnet build src/elite_cs_sdk.csproj /p:EliteUpstreamSdkRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true /p:EliteLinkUpstreamStatic=false
 ```
 
 参数含义：
@@ -136,18 +146,29 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompi
 - `EliteAutoBootstrapNative`：是否启用自动准备 native 依赖
 - `EliteNativeRepoUrl`：native 封装仓库地址
 - `EliteNativeRepoRef`：native 封装仓库使用的分支、tag 或 commit
+- `EliteUpstreamSdkRepoUrl`：native 封装在 `ELITE_AUTO_FETCH_SDK=ON` 时拉取的上游 C++ SDK 仓库地址
 - `EliteForceNativeRebuild`：忽略本地缓存并强制重新编译
 - `EliteLinkUpstreamStatic`：是否让 C 封装层链接上游 C++ SDK 的静态库；Windows 默认 `true`，Linux 默认 `false`
 - `EliteCompileKinPlugin`：在自动拉取/源码构建上游 C++ SDK 时，同时编译运动学插件
 - `EliteCompilePoseAlgPlugin`：在自动拉取/源码构建上游 C++ SDK 时，同时编译位姿代数插件
 
+Windows 下如果要通过 `KinematicsBase` 或 `PoseAlgebraBase` 在运行时加载插件，请使用 `/p:EliteLinkUpstreamStatic=false`。
+
 如果未传入 `EliteNativeRepoUrl`，构建会在可能的情况下根据当前 git `origin` 自动推导仓库地址，并在 GitHub/Gitee 镜像之间回退。
+`EliteNativeRepoUrl` 只控制 C 封装仓库，例如 `Elite_Robots_CS_SDK_C`。
+如果需要使用上游 C++ SDK 的私有镜像，请传入 `EliteUpstreamSdkRepoUrl`；bootstrap 脚本会把它作为 CMake 的 `ELITE_CS_SDK_REPO` 传给 native 构建。
 
 `EliteCompileKinPlugin` 和 `EliteCompilePoseAlgPlugin` 会作为 CMake 参数传给 native 构建流程：
 
 ```bash
 -DELITE_COMPILE_KIN_PLUGIN=true
 -DELITE_COMPILE_POSE_ALG_PLUGIN=true
+```
+
+例如 Windows 下使用私有镜像编译：
+
+```powershell
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK_C.git /p:EliteUpstreamSdkRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK.git
 ```
 
 注意：如果 native 构建通过 `find_package(elite-cs-series-sdk)` 找到了本机已安装的 C++ SDK，它会直接使用该 SDK，不会重新编译已安装 SDK 里的插件。此时需要你提前在 C++ SDK 工程中编译好插件，或清理/调整本地 SDK 查找路径，让构建走自动拉取/源码构建流程。

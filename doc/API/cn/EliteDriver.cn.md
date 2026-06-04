@@ -148,6 +148,72 @@ public bool writeFreedrive(FreedriveAction action, int timeout_ms)
 - ***注意***
     写入START动作之后，需要在超时时间内写入下一条指令，可以写入NOOP。
 
+## 轨迹相关类型
+
+### TrajectoryMotionResult
+
+```csharp
+public enum TrajectoryMotionResult
+{
+    SUCCESS = 0,
+    CANCELED = 1,
+    FAILURE = 2,
+}
+```
+
+- `SUCCESS`：轨迹执行成功。
+- `CANCELED`：轨迹被取消。
+- `FAILURE`：轨迹执行失败。
+
+### TrajectoryFeedbackMessageType
+
+```csharp
+public enum TrajectoryFeedbackMessageType
+{
+    ACTIVE_POINT = 1,
+    POINT_DONE = 2,
+    RESULT = 3,
+}
+```
+
+- `ACTIVE_POINT`：机器人正在执行或接近回调中报告的点。
+- `POINT_DONE`：回调中报告的点已经执行完成。
+- `RESULT`：最终轨迹结果反馈。
+
+### TrajectoryMotionFeedback
+
+```csharp
+public sealed class TrajectoryMotionFeedback
+{
+    public TrajectoryFeedbackMessageType MessageType { get; init; }
+    public int PointIndex { get; init; }
+    public int TotalPoints { get; init; }
+    public TrajectoryMotionResult Result { get; init; }
+    public double[] Point { get; init; } = new double[6];
+}
+```
+
+- `MessageType`：反馈消息类型。
+- `PointIndex`：控制器报告的当前点索引。
+- `TotalPoints`：轨迹总点数。
+- `Result`：轨迹执行结果，主要在 `MessageType` 为 `RESULT` 时使用。
+- `Point`：回调中报告的轨迹点，长度为 6。
+
+### TrajectoryControlAction
+
+```csharp
+public enum TrajectoryControlAction
+{
+    CANCEL = -1,
+    NOOP = 0,
+    START = 1,
+}
+```
+
+- `START`：开始执行已经发送的轨迹点。
+- `NOOP`：保持轨迹控制通道活跃，不改变当前状态。
+- `CANCEL`：取消当前轨迹运动。
+
 ## 轨迹控制
 
 ### setTrajectoryResultCallback

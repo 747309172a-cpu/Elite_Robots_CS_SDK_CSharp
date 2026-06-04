@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "example": {
+      "commandName": "Project",
+      "commandLineArgs": "dashboard_client 172.16.100.10"
+    }
+  }
+}

@@ -6,7 +6,8 @@ param(
     [string]$ForceRebuild = "false",
     [string]$LinkUpstreamStatic = "false",
     [string]$CompileKinPlugin = "false",
-    [string]$CompilePoseAlgPlugin = "false"
+    [string]$CompilePoseAlgPlugin = "false",
+    [string]$UpstreamSdkRepoUrl = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -332,6 +333,7 @@ if (-not (Test-Path $stampFile)) {
     Add-CMakeCacheArgIfPresent -List $configureArgs -Name "BOOST_ROOT" -Value $env:BOOST_ROOT -Type "PATH"
     Add-CMakeCacheArgIfPresent -List $configureArgs -Name "Boost_ROOT" -Value $env:Boost_ROOT -Type "PATH"
     Add-CMakeCacheArgIfPresent -List $configureArgs -Name "Boost_INCLUDE_DIR" -Value $env:Boost_INCLUDE_DIR -Type "PATH"
+    Add-CMakeCacheArgIfPresent -List $configureArgs -Name "ELITE_CS_SDK_REPO" -Value $UpstreamSdkRepoUrl
 
     Write-Host "[bootstrap-native] Configuring native library for $rid..."
     Invoke-NativeCommand `

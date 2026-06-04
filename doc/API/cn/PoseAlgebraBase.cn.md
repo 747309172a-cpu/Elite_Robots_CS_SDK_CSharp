@@ -29,6 +29,19 @@ public PoseAlgebraBase(string plugin_lib_path, string? plugin_class_name = null)
   - `ArgumentNullException`：`plugin_lib_path` 为空。
   - `EliteSdkException`：插件加载或实例创建失败。
 
+## 插件库
+
+常用插件动态库和类名：
+
+| 平台 | 插件动态库 | 插件类名 |
+| --- | --- | --- |
+| Windows | `elite_eigen_pose_algebra.dll` | `ELITE::EigenPoseAlgebra` |
+| Windows | `elite_pose_algebra.dll` | `ELITE::ElitePoseAlgebra` |
+| Linux | `libelite_eigen_pose_algebra.so` | `ELITE::EigenPoseAlgebra` |
+| Linux | `libelite_pose_algebra.so` | `ELITE::ElitePoseAlgebra` |
+
+Windows 下运行目录还必须包含 `elite_cs_sdk.dll`、`elite_cs_series_sdk_c.dll` 和 `elite_cs_series_sdk.dll`。插件 DLL 需要使用 `/p:EliteLinkUpstreamStatic=false` 编译；否则即使 DLL 文件都存在，创建插件实例也可能失败。
+
 ## 相关类型
 
 ### PoseMatrix
@@ -70,6 +83,24 @@ public struct PoseAlgebraResult
 
 - ***功能***
   - 表示位姿代数计算结果。
+
+### PoseAlgebraError
+
+```csharp
+public enum PoseAlgebraError
+{
+    SUCCESS = 0,
+    INVALID_INPUT = 1,
+    SINGULAR_MATRIX = 2,
+    INVALID_ROTATION_MATRIX = 3,
+    NUMERICAL_ERROR = 4,
+    UNSUPPORTED_OPERATION = 5,
+    INTERNAL_ERROR = 6,
+}
+```
+
+- ***功能***
+  - 表示 `PoseAlgebraResult.error` 返回的计算结果码。
 
 ## 方法
 
@@ -346,6 +377,37 @@ public void Dispose()
 
 ## 示例
 
+Windows 下最小 C# 用法：
+
+```csharp
+using System;
+using System.IO;
+using EliteRobots.CSharp;
+
+var pluginPath = Path.Combine(AppContext.BaseDirectory, "elite_eigen_pose_algebra.dll");
+
+using var poseAlgebra = new PoseAlgebraBase(pluginPath, "ELITE::EigenPoseAlgebra");
+
+double[] pose = { 0.3, 0.1, 0.2, 0, 0, 1.57 };
+double[] inversePose = new double[6];
+
+if (!poseAlgebra.inverse(pose, inversePose, out var result))
+{
+    Console.WriteLine($"{result.error}: {result.message}");
+    return;
+}
+
+Console.WriteLine(string.Join(", ", inversePose));
+```
+
+Linux 下运行示例工程：
+
 ```bash
 dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so ELITE::EigenPoseAlgebra
+```
+
+Windows 下运行示例工程：
+
+```powershell
+dotnet run --project example -- pose_algebra .\libs\elite_eigen_pose_algebra.dll ELITE::EigenPoseAlgebra
 ```

@@ -9,6 +9,7 @@ force_rebuild="${5:-false}"
 link_upstream_static="${6:-false}"
 compile_kin_plugin="${7:-false}"
 compile_pose_alg_plugin="${8:-false}"
+upstream_sdk_repo_url="${9:-}"
 toolchain_file="${CMAKE_TOOLCHAIN_FILE:-}"
 vcpkg_root="${VCPKG_ROOT:-}"
 vcpkg_triplet="${VCPKG_TARGET_TRIPLET:-}"
@@ -188,6 +189,9 @@ if [[ ! -f "${stamp_file}" ]]; then
     fi
     if [[ -n "${cmake_prefix_path}" ]]; then
         configure_args+=("-DCMAKE_PREFIX_PATH:PATH=${cmake_prefix_path}")
+    fi
+    if [[ -n "${upstream_sdk_repo_url}" ]]; then
+        configure_args+=("-DELITE_CS_SDK_REPO:STRING=${upstream_sdk_repo_url}")
     fi
 
     echo "[bootstrap-native] Configuring native library for ${rid}..."

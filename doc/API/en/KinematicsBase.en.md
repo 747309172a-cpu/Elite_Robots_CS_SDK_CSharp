@@ -29,6 +29,17 @@ public KinematicsBase(string plugin_lib_path, string? plugin_class_name = null)
   - `ArgumentNullException`: `plugin_lib_path` is null.
   - `EliteSdkException`: plugin loading or instance creation failed.
 
+## Plugin Library
+
+Common plugin library and class names:
+
+| Platform | Plugin library | Plugin class name |
+| --- | --- | --- |
+| Windows | `elite_kdl_kinematics.dll` | `ELITE::KdlKinematicsPlugin` |
+| Linux | `libelite_kdl_kinematics.so` | `ELITE::KdlKinematicsPlugin` |
+
+On Windows, the runtime directory must also contain `elite_cs_sdk.dll`, `elite_cs_series_sdk_c.dll`, and `elite_cs_series_sdk.dll`. The plugin DLL should be built with `/p:EliteLinkUpstreamStatic=false`; otherwise plugin instance creation can fail even when all DLL files exist.
+
 ## Related Types
 
 ### KinematicsResult
@@ -202,6 +213,39 @@ public void Dispose()
 
 ## Example
 
+Minimal C# usage on Windows:
+
+```csharp
+using System;
+using System.IO;
+using EliteRobots.CSharp;
+
+var pluginPath = Path.Combine(AppContext.BaseDirectory, "elite_kdl_kinematics.dll");
+
+using var kinematics = new KinematicsBase(pluginPath, "ELITE::KdlKinematicsPlugin");
+
+double[] alpha = { 0, -Math.PI / 2, 0, -Math.PI / 2, Math.PI / 2, -Math.PI / 2 };
+double[] a = { 0, 0, -0.425, -0.39225, 0, 0 };
+double[] d = { 0.089159, 0, 0, 0.10915, 0.09465, 0.0823 };
+kinematics.setMDH(alpha, a, d);
+
+double[] joints = { 0, -1.57, 1.57, 0, 1.57, 0 };
+double[] pose = new double[6];
+
+if (kinematics.getPositionFK(joints, pose))
+{
+    Console.WriteLine(string.Join(", ", pose));
+}
+```
+
+Example project command on Linux:
+
 ```bash
 dotnet run --project example -- kinematics 172.16.102.156 /path/to/libelite_kdl_kinematics.so ELITE::KdlKinematicsPlugin
+```
+
+Example project command on Windows:
+
+```powershell
+dotnet run --project example -- kinematics 172.16.102.156 .\libs\elite_kdl_kinematics.dll ELITE::KdlKinematicsPlugin
 ```

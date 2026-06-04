@@ -147,6 +147,72 @@ public bool writeFreedrive(FreedriveAction action, int timeout_ms)
 - ***Notes***
     After writing the `START` action, the next command must be written within the timeout. `NOOP` can be written.
 
+## Trajectory Related Types
+
+### TrajectoryMotionResult
+
+```csharp
+public enum TrajectoryMotionResult
+{
+    SUCCESS = 0,
+    CANCELED = 1,
+    FAILURE = 2,
+}
+```
+
+- `SUCCESS`: trajectory completed successfully.
+- `CANCELED`: trajectory was canceled.
+- `FAILURE`: trajectory execution failed.
+
+### TrajectoryFeedbackMessageType
+
+```csharp
+public enum TrajectoryFeedbackMessageType
+{
+    ACTIVE_POINT = 1,
+    POINT_DONE = 2,
+    RESULT = 3,
+}
+```
+
+- `ACTIVE_POINT`: the robot is currently executing or approaching the reported point.
+- `POINT_DONE`: the reported point has completed.
+- `RESULT`: final trajectory result feedback.
+
+### TrajectoryMotionFeedback
+
+```csharp
+public sealed class TrajectoryMotionFeedback
+{
+    public TrajectoryFeedbackMessageType MessageType { get; init; }
+    public int PointIndex { get; init; }
+    public int TotalPoints { get; init; }
+    public TrajectoryMotionResult Result { get; init; }
+    public double[] Point { get; init; } = new double[6];
+}
+```
+
+- `MessageType`: feedback message type.
+- `PointIndex`: current point index reported by the controller.
+- `TotalPoints`: total number of trajectory points.
+- `Result`: trajectory result, mainly useful when `MessageType` is `RESULT`.
+- `Point`: reported trajectory point, length 6.
+
+### TrajectoryControlAction
+
+```csharp
+public enum TrajectoryControlAction
+{
+    CANCEL = -1,
+    NOOP = 0,
+    START = 1,
+}
+```
+
+- `START`: start executing the trajectory points already sent.
+- `NOOP`: keep the trajectory control channel active without changing state.
+- `CANCEL`: cancel the current trajectory motion.
+
 ## Trajectory Control
 
 ### setTrajectoryResultCallback

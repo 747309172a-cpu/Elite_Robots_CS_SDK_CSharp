@@ -29,6 +29,19 @@ public PoseAlgebraBase(string plugin_lib_path, string? plugin_class_name = null)
   - `ArgumentNullException`: `plugin_lib_path` is null.
   - `EliteSdkException`: plugin loading or instance creation failed.
 
+## Plugin Library
+
+Common plugin library and class names:
+
+| Platform | Plugin library | Plugin class name |
+| --- | --- | --- |
+| Windows | `elite_eigen_pose_algebra.dll` | `ELITE::EigenPoseAlgebra` |
+| Windows | `elite_pose_algebra.dll` | `ELITE::ElitePoseAlgebra` |
+| Linux | `libelite_eigen_pose_algebra.so` | `ELITE::EigenPoseAlgebra` |
+| Linux | `libelite_pose_algebra.so` | `ELITE::ElitePoseAlgebra` |
+
+On Windows, the runtime directory must also contain `elite_cs_sdk.dll`, `elite_cs_series_sdk_c.dll`, and `elite_cs_series_sdk.dll`. The plugin DLL should be built with `/p:EliteLinkUpstreamStatic=false`; otherwise plugin instance creation can fail even when all DLL files exist.
+
 ## Related Types
 
 ### PoseMatrix
@@ -70,6 +83,24 @@ public struct PoseAlgebraResult
 
 - ***Function***
   - Represents the result of a pose algebra operation.
+
+### PoseAlgebraError
+
+```csharp
+public enum PoseAlgebraError
+{
+    SUCCESS = 0,
+    INVALID_INPUT = 1,
+    SINGULAR_MATRIX = 2,
+    INVALID_ROTATION_MATRIX = 3,
+    NUMERICAL_ERROR = 4,
+    UNSUPPORTED_OPERATION = 5,
+    INTERNAL_ERROR = 6,
+}
+```
+
+- ***Function***
+  - Represents the operation result code returned in `PoseAlgebraResult.error`.
 
 ## Methods
 
@@ -346,6 +377,37 @@ public void Dispose()
 
 ## Example
 
+Minimal C# usage on Windows:
+
+```csharp
+using System;
+using System.IO;
+using EliteRobots.CSharp;
+
+var pluginPath = Path.Combine(AppContext.BaseDirectory, "elite_eigen_pose_algebra.dll");
+
+using var poseAlgebra = new PoseAlgebraBase(pluginPath, "ELITE::EigenPoseAlgebra");
+
+double[] pose = { 0.3, 0.1, 0.2, 0, 0, 1.57 };
+double[] inversePose = new double[6];
+
+if (!poseAlgebra.inverse(pose, inversePose, out var result))
+{
+    Console.WriteLine($"{result.error}: {result.message}");
+    return;
+}
+
+Console.WriteLine(string.Join(", ", inversePose));
+```
+
+Example project command on Linux:
+
 ```bash
 dotnet run --project example -- pose_algebra /path/to/libelite_eigen_pose_algebra.so ELITE::EigenPoseAlgebra
+```
+
+Example project command on Windows:
+
+```powershell
+dotnet run --project example -- pose_algebra .\libs\elite_eigen_pose_algebra.dll ELITE::EigenPoseAlgebra
 ```

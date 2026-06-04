@@ -79,6 +79,14 @@ If the project has already been built before and you need to force a native rebu
 dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 ```
 
+If you need the kinematics and pose algebra plugin DLLs on Windows, build with plugin compilation enabled and keep the upstream C++ SDK linked dynamically:
+
+```bat
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteLinkUpstreamStatic=false
+```
+
+`EliteLinkUpstreamStatic=false` is required for Windows plugin loading. With the Windows default `EliteLinkUpstreamStatic=true`, the DLLs can still build, but runtime plugin creation can fail because the C wrapper and plugin DLLs do not share the same upstream SDK DLL registry.
+
 Build the example project:
 
 ```bat
@@ -127,8 +135,10 @@ dotnet build src/elite_cs_sdk.csproj /p:EliteAutoBootstrapNative=false
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://github.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/<your-native-repo>.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteNativeRepoRef=main
+dotnet build src/elite_cs_sdk.csproj /p:EliteUpstreamSdkRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK.git
 dotnet build src/elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true
 dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true
+dotnet build src/elite_cs_sdk.csproj /p:EliteCompileKinPlugin=true /p:EliteCompilePoseAlgPlugin=true /p:EliteForceNativeRebuild=true /p:EliteLinkUpstreamStatic=false
 ```
 
 Property meanings:
@@ -136,18 +146,29 @@ Property meanings:
 - `EliteAutoBootstrapNative`: enable or disable automatic native bootstrap
 - `EliteNativeRepoUrl`: native wrapper repository URL
 - `EliteNativeRepoRef`: git branch/tag/commit used for the native wrapper
+- `EliteUpstreamSdkRepoUrl`: upstream C++ SDK repository URL used by the native wrapper when `ELITE_AUTO_FETCH_SDK=ON`
 - `EliteForceNativeRebuild`: ignore cached native output and rebuild
 - `EliteLinkUpstreamStatic`: whether the C wrapper links against the upstream C++ SDK static library; default is `true` on Windows and `false` on Linux
 - `EliteCompileKinPlugin`: also build the kinematics plugin when the upstream C++ SDK is auto-fetched or built from source
 - `EliteCompilePoseAlgPlugin`: also build the pose algebra plugin when the upstream C++ SDK is auto-fetched or built from source
 
+On Windows, use `/p:EliteLinkUpstreamStatic=false` when building plugins that will be loaded at runtime by `KinematicsBase` or `PoseAlgebraBase`.
+
 If `EliteNativeRepoUrl` is omitted, the build derives it from the current git `origin` remote when possible and falls back across GitHub/Gitee mirrors.
+`EliteNativeRepoUrl` only controls the C wrapper repository, for example `Elite_Robots_CS_SDK_C`.
+If you need to use a private mirror of the upstream C++ SDK repository, pass `EliteUpstreamSdkRepoUrl`; the bootstrap script forwards it to CMake as `ELITE_CS_SDK_REPO`.
 
 `EliteCompileKinPlugin` and `EliteCompilePoseAlgPlugin` are forwarded to the native CMake configure step:
 
 ```bash
 -DELITE_COMPILE_KIN_PLUGIN=true
 -DELITE_COMPILE_POSE_ALG_PLUGIN=true
+```
+
+For example, to build from private mirrors on Windows:
+
+```powershell
+dotnet build src\elite_cs_sdk.csproj /p:EliteForceNativeRebuild=true /p:EliteNativeRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK_C.git /p:EliteUpstreamSdkRepoUrl=https://gitee.com/<your-org>/Elite_Robots_CS_SDK.git
 ```
 
 Note: if the native build finds an already installed C++ SDK through `find_package(elite-cs-series-sdk)`, it uses that SDK directly and does not rebuild plugins from the installed SDK. In that case, build the plugins in the C++ SDK project beforehand, or clear/adjust the local SDK lookup path so the build uses the auto-fetch/source-build path.

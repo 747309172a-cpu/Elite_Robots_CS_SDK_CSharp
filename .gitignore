@@ -7,3 +7,4 @@ nupkg/
 .native-out/
 .vscode
 .codex
+.vs/

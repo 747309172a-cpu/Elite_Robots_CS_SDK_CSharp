@@ -3,7 +3,7 @@
 if (args.Length < 2)
 {
     Console.WriteLine("Usage:");
-    Console.WriteLine("  dotnet run -- primary_client <robot-ip> [--port <primary-port>]");
+    Console.WriteLine("  dotnet run -- primary_client <robot-ip> [--port <primary-port>] [--control-demo] [--speed-scaling <percent>]");
     Console.WriteLine("  dotnet run -- dashboard_client <robot-ip> [--port <dashboard-port>]");
     Console.WriteLine("  dotnet run -- driver <robot-ip> <script-file-path> [--local-ip <ip>] [--headless] [--ssh-password <pwd>] [--with-rs485]");
     Console.WriteLine("  dotnet run -- speedl <robot-ip> [--local-ip <ip>] [--headless <true|false>] [--script-file <path>]");

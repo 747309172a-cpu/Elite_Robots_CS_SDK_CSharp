@@ -42,6 +42,7 @@ Supported modes (see `Program.cs`):
 ```bash
 # Primary
 dotnet run --project example -- primary_client 172.16.102.156  # robot IP
+dotnet run --project example -- primary_client 172.16.102.156 --control-demo --speed-scaling 70
 
 # Dashboard
 dotnet run --project example -- dashboard_client 172.16.102.156
@@ -185,8 +186,9 @@ If plugin creation fails on Windows with a message similar to `failed to create 
 
 ### 5.1 `primary_client`
 
-- Function: connect to Primary port, read kinematics package, send script, receive robot exception callbacks.
-- Flow: `connect -> getPackage(KinematicsInfo) -> register callback -> send script -> disconnect`
+- Function: connect to Primary port, read kinematics package, send script, receive robot exception callbacks, and optionally test Primary basic control commands.
+- Flow: `connect -> getPackage(KinematicsInfo) -> optional setSpeedScaling/powerOn/brakeRelease/pauseProgram/stopProgram/unlockProtectiveStop/safetySystemRestart -> register callback -> send script -> disconnect`
+- Note: the default command does not execute basic control actions. Add `--control-demo` to run the Primary control commands.
 
 ### 5.2 `dashboard_client`
 

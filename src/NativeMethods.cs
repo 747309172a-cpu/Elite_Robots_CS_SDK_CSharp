@@ -646,6 +646,30 @@ internal static partial class NativeMethods
         out int outSuccess);
 
     [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_power_on(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_power_off(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_brake_release(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_pause_program(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_stop_program(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_unlock_protective_stop(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_safety_system_restart(nint handle, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern EliteStatus elite_primary_set_speed_scaling(nint handle, int scaling, out int outSuccess);
+
+    [DllImport(NativeLib, CallingConvention = CallingConvention.Cdecl)]
     internal static extern EliteStatus elite_primary_get_local_ip(
         nint handle,
         [Out] byte[]? outBuffer,

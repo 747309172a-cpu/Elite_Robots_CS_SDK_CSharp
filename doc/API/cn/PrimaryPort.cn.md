@@ -82,6 +82,110 @@ public bool sendScript(string script)
 - ***返回值***
   - 发送成功返回 `true`，失败返回 `false`。
 
+### powerOn
+
+```csharp
+public bool powerOn()
+```
+
+- ***功能***
+  - 通过 Primary 端口给机器人上电。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### powerOff
+
+```csharp
+public bool powerOff()
+```
+
+- ***功能***
+  - 通过 Primary 端口关闭机器人电源。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### brakeRelease
+
+```csharp
+public bool brakeRelease()
+```
+
+- ***功能***
+  - 通过 Primary 端口释放机器人抱闸。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### pauseProgram
+
+```csharp
+public bool pauseProgram()
+```
+
+- ***功能***
+  - 通过 Primary 端口暂停当前运行任务。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### stopProgram
+
+```csharp
+public bool stopProgram()
+```
+
+- ***功能***
+  - 通过 Primary 端口停止当前任务。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### unlockProtectiveStop
+
+```csharp
+public bool unlockProtectiveStop()
+```
+
+- ***功能***
+  - 通过 Primary 端口解除保护停止。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### safetySystemRestart
+
+```csharp
+public bool safetySystemRestart()
+```
+
+- ***功能***
+  - 通过 Primary 端口重启安全系统。
+- ***参数***
+  - 无。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
+### setSpeedScaling
+
+```csharp
+public bool setSpeedScaling(int scaling)
+```
+
+- ***功能***
+  - 通过 Primary 端口设置目标速度比例。
+- ***参数***
+  - `scaling`：目标速度百分比。
+- ***返回值***
+  - 执行成功返回 `true`，失败返回 `false`。
+
 ### getPackage
 
 ```csharp

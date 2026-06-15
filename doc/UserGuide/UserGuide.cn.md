@@ -42,6 +42,7 @@ dotnet run --project example -- <mode> <args...>
 ```bash
 # Primary
 dotnet run --project example -- primary_client 172.16.102.156(机器人ip)
+dotnet run --project example -- primary_client 172.16.102.156 --control-demo --speed-scaling 70
 
 # Dashboard
 dotnet run --project example -- dashboard_client 172.16.102.156
@@ -186,8 +187,9 @@ MyApp/bin/Debug/net8.0/
 
 ### 5.1 `primary_client`
 
-- 功能：连接 Primary 端口，读取运动学包，发送脚本，接收机器人异常回调。
-- 流程：`connect -> getPackage(KinematicsInfo) -> 注册回调 -> 发送脚本 -> disconnect`
+- 功能：连接 Primary 端口，读取运动学包，发送脚本，接收机器人异常回调；可选测试 Primary 基础控制命令。
+- 流程：`connect -> getPackage(KinematicsInfo) -> 可选 setSpeedScaling/powerOn/brakeRelease/pauseProgram/stopProgram/unlockProtectiveStop/safetySystemRestart -> 注册回调 -> 发送脚本 -> disconnect`
+- 说明：默认命令不会执行基础控制动作；需要加 `--control-demo` 才会执行 Primary 控制命令。
 
 ### 5.2 `dashboard_client`
 

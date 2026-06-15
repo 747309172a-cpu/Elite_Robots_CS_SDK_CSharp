@@ -45,6 +45,62 @@ public sealed class PrimaryClientInterface : IDisposable
         return success != 0;
     }
 
+    public bool powerOn()
+    {
+        var status = NativeMethods.elite_primary_power_on(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool powerOff()
+    {
+        var status = NativeMethods.elite_primary_power_off(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool brakeRelease()
+    {
+        var status = NativeMethods.elite_primary_brake_release(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool pauseProgram()
+    {
+        var status = NativeMethods.elite_primary_pause_program(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool stopProgram()
+    {
+        var status = NativeMethods.elite_primary_stop_program(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool unlockProtectiveStop()
+    {
+        var status = NativeMethods.elite_primary_unlock_protective_stop(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool safetySystemRestart()
+    {
+        var status = NativeMethods.elite_primary_safety_system_restart(_handle.DangerousGetHandle(), out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
+    public bool setSpeedScaling(int scaling)
+    {
+        var status = NativeMethods.elite_primary_set_speed_scaling(_handle.DangerousGetHandle(), scaling, out var success);
+        ThrowIfError(status, _handle.DangerousGetHandle());
+        return success != 0;
+    }
+
     public string getLocalIP()
     {
         var handle = _handle.DangerousGetHandle();

@@ -82,6 +82,110 @@ public bool sendScript(string script)
 - ***Return Value***
   - Returns `true` if sending succeeds, otherwise `false`.
 
+### powerOn
+
+```csharp
+public bool powerOn()
+```
+
+- ***Function***
+  - Power on the robot through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### powerOff
+
+```csharp
+public bool powerOff()
+```
+
+- ***Function***
+  - Power off the robot through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### brakeRelease
+
+```csharp
+public bool brakeRelease()
+```
+
+- ***Function***
+  - Release the robot brakes through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### pauseProgram
+
+```csharp
+public bool pauseProgram()
+```
+
+- ***Function***
+  - Pause the running task through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### stopProgram
+
+```csharp
+public bool stopProgram()
+```
+
+- ***Function***
+  - Stop the current task through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### unlockProtectiveStop
+
+```csharp
+public bool unlockProtectiveStop()
+```
+
+- ***Function***
+  - Unlock protective stop through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### safetySystemRestart
+
+```csharp
+public bool safetySystemRestart()
+```
+
+- ***Function***
+  - Restart the safety system through the Primary port.
+- ***Parameters***
+  - None.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
+### setSpeedScaling
+
+```csharp
+public bool setSpeedScaling(int scaling)
+```
+
+- ***Function***
+  - Set the target speed scaling through the Primary port.
+- ***Parameters***
+  - `scaling`: target speed percentage.
+- ***Return Value***
+  - Returns `true` if the command succeeds, otherwise `false`.
+
 ### getPackage
 
 ```csharp
